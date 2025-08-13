@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QListWidgetItem,
     QPushButton,
     QLabel,
+    QMessageBox,
 )
 from PyQt6.QtGui import QAction
 from PyQt6.QtCore import Qt
