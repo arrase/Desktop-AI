@@ -6,20 +6,14 @@ from PyQt6.QtWidgets import (
     QDialogButtonBox,
     QMessageBox,
 )
+from .database import DatabaseManager
 
 
 class AddTaskDialog(QDialog):
-    def accept(self):
-        description = self.description_input.text().strip()
-        frequency = self.frequency_input.text().strip()
-        if not description or not frequency:
-            QMessageBox.warning(
-                self, "Required fields", "Please fill in all fields."
-            )
-            return
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add New Task")
+        self.db_manager = DatabaseManager()
 
         self.description_input = QLineEdit()
         self.frequency_input = QLineEdit()
@@ -41,10 +35,19 @@ class AddTaskDialog(QDialog):
 
         self.setLayout(main_layout)
 
-    def get_task_data(self):
+    def accept(self):
         description = self.description_input.text().strip()
         frequency = self.frequency_input.text().strip()
+        if not description or not frequency:
+            QMessageBox.warning(
+                self, "Required fields", "Please fill in all fields."
+            )
+            return
+
+        super().accept()
+
+    def get_task_data(self):
         return {
-            "description": description,
-            "frequency": frequency,
+            "description": self.description_input.text(),
+            "frequency": self.frequency_input.text(),
         }
