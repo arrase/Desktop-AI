@@ -65,7 +65,6 @@ class DatabaseManager:
                 (description, frequency),
             )
             conn.commit()
-            return cursor.lastrowid
 
     def get_all_tasks(self):
         with sqlite3.connect(self.db_path) as conn:
