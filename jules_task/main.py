@@ -127,7 +127,11 @@ class JulesTaskApp(QApplication):
 
     def show_settings(self):
         # This will be implemented in a future step
-        pass
+        QMessageBox.information(
+            self.main_window,
+            "Settings",
+            "Settings dialog not implemented yet."
+        )
 
     def on_exit(self):
         self.db_manager.close()
