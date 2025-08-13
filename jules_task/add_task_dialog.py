@@ -17,7 +17,6 @@ class AddTaskDialog(QDialog):
                 self, "Required fields", "Please fill in all fields."
             )
             return
-        super().accept()
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add New Task")
