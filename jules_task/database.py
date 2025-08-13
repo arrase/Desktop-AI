@@ -43,7 +43,7 @@ class DatabaseManager:
         self.connection.commit()
 
     def close(self):
-        self.create_table()
+        self.connection.close()
 
     def create_table(self):
         with sqlite3.connect(self.db_path) as conn:
