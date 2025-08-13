@@ -13,7 +13,10 @@ class AddTaskDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add New Task")
-        self.db_manager = DatabaseManager()
+    def __init__(self, db_manager, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Add New Task")
+        self.db_manager = db_manager
 
         self.description_input = QLineEdit()
         self.frequency_input = QLineEdit()
