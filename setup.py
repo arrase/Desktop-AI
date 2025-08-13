@@ -8,7 +8,7 @@ setup(
         "PyQt6",
     ],
     entry_points={
-        "gui_scripts": [
+        "console_scripts": [
             "jules-task = jules_task.main:main",
         ]
     },
