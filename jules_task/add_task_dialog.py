@@ -13,8 +13,11 @@ class AddTaskDialog(QDialog):
         description = self.description_input.text().strip()
         frequency = self.frequency_input.text().strip()
         if not description or not frequency:
-            QMessageBox.warning(self, "Required fields", "Please fill in both the task description and frequency.")
+            QMessageBox.warning(
+                self, "Required fields", "Please fill in all fields."
+            )
             return
+        super().accept()
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add New Task")

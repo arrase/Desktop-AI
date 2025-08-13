@@ -15,30 +15,31 @@ from PyQt6.QtWidgets import (
     QMessageBox,
 )
 from PyQt6.QtGui import QAction
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 
 from .add_task_dialog import AddTaskDialog
 from .database import DatabaseManager
 
 
 class TaskWidgetItem(QWidget):
-    def __init__(self, task_id, description, frequency, main_window):
+    taskDeleted = pyqtSignal(int)
+
+    def __init__(self, task_id, description, frequency):
         super().__init__()
         self.task_id = task_id
-        self.main_window = main_window
 
         layout = QHBoxLayout()
         layout.addWidget(QLabel(f"<b>{description}</b><br>{frequency}"))
         layout.addStretch()
 
         delete_button = QPushButton("Delete")
-        delete_button.clicked.connect(self.delete_task)
+        delete_button.clicked.connect(self._on_delete_clicked)
         layout.addWidget(delete_button)
 
         self.setLayout(layout)
 
-    def delete_task(self):
-        self.main_window.delete_task(self.task_id)
+    def _on_delete_clicked(self):
+        self.taskDeleted.emit(self.task_id)
 
 
 class MainWindow(QMainWindow):
@@ -65,10 +66,10 @@ class MainWindow(QMainWindow):
     def load_tasks(self):
         self.task_list.clear()
         tasks = self.db_manager.get_all_tasks()
-        for task in tasks:
-            task_id, description, frequency = task
+        for task_id, description, frequency in tasks:
             item = QListWidgetItem(self.task_list)
-            widget = TaskWidgetItem(task_id, description, frequency, self)
+            widget = TaskWidgetItem(task_id, description, frequency)
+            widget.taskDeleted.connect(self.delete_task)
             item.setSizeHint(widget.sizeHint())
             self.task_list.addItem(item)
             self.task_list.setItemWidget(item, widget)
@@ -129,13 +130,10 @@ class JulesTaskApp(QApplication):
     def show_settings(self):
         # This will be implemented in a future step
         QMessageBox.information(
-            self.main_window,
-            "Settings",
-            "Settings dialog not implemented yet."
+            self.main_window, "Settings", "Settings dialog not implemented yet."
         )
 
     def on_exit(self):
-        self.db_manager.close()
         self.quit()
 
     def run(self):
