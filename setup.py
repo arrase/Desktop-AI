@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="jules_task",
+    name="taskagent",
     version="0.1.0",
     packages=find_packages(),
     install_requires=[
@@ -9,7 +9,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "jules-task = jules_task.main:main",
+            "taskagent = task_agent.main:main",
         ]
     },
 )

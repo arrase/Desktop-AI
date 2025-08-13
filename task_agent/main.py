@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
     QMessageBox,
 )
 from PyQt6.QtGui import QAction
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import pyqtSignal
 
 from .add_task_dialog import AddTaskDialog
 from .database import DatabaseManager
@@ -46,7 +46,7 @@ class MainWindow(QMainWindow):
     def __init__(self, db_manager):
         super().__init__()
         self.db_manager = db_manager
-        self.setWindowTitle("Jules Task Manager")
+        self.setWindowTitle("Task Manager")
         self.resize(800, 600)
 
         central_widget = QWidget()
@@ -92,7 +92,7 @@ class MainWindow(QMainWindow):
         self.hide()
 
 
-class JulesTaskApp(QApplication):
+class TaskAgentApp(QApplication):
     def __init__(self, argv):
         super().__init__(argv)
         self.setQuitOnLastWindowClosed(False)
@@ -107,7 +107,7 @@ class JulesTaskApp(QApplication):
         self.tray_icon.setIcon(
             self.style().standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton)
         )
-        self.tray_icon.setToolTip("Jules Task Manager")
+        self.tray_icon.setToolTip("Task Manager")
         self.tray_icon.activated.connect(self.on_tray_icon_activated)
 
         # Tray Menu
@@ -142,7 +142,7 @@ class JulesTaskApp(QApplication):
 
 
 def main():
-    app = JulesTaskApp(sys.argv)
+    app = TaskAgentApp(sys.argv)
     app.run()
 
 
