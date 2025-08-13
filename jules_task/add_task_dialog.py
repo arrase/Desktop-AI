@@ -35,5 +35,11 @@ class AddTaskDialog(QDialog):
     def get_task_data(self):
         return {
             "description": self.description_input.text(),
-            "frequency": self.frequency_input.text(),
+        description = self.description_input.text().strip()
+        frequency = self.frequency_input.text().strip()
+        if not description or not frequency:
+            return None
+        return {
+            "description": description,
+            "frequency": frequency,
         }
