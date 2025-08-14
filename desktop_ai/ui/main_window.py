@@ -91,7 +91,7 @@ class MainWindow(QMainWindow):
         self.chat_history.append(render_user_message(user_message))
         self.input_box.clear()
 
-        # Evitar solapamiento (se podría implementar cola en futuro)
+        # Avoid overlap (could implement queue in the future)
         if self._thread_active():
             return
 
