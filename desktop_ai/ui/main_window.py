@@ -1,8 +1,10 @@
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtCore import QThread, pyqtSignal, QObject
 from ..agent import ChatAgent
 import asyncio
+
 
 class AgentWorker(QObject):
     response_received = pyqtSignal(str)
@@ -18,9 +20,11 @@ class AgentWorker(QObject):
         response = loop.run_until_complete(self.agent.get_response(self.prompt))
         self.response_received.emit(response)
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        # Create agent lazily to avoid heavy imports at module import time if desired
         self.agent = ChatAgent()
         self.setWindowTitle("Chatbot")
         self.resize(800, 600)
