@@ -6,8 +6,6 @@ from PyQt6.QtWidgets import (
     QDialogButtonBox,
     QMessageBox,
 )
-from .database import DatabaseManager
-
 
 class AddTaskDialog(QDialog):
     def __init__(self, parent=None):
