@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
             self._thread = None
             return False
 
-    def _cleanup_thread(self):  # slot
+    def _cleanup_thread(self):  # Qt slot for cleaning up thread references
         self._thread = None
         self._worker = None
 
