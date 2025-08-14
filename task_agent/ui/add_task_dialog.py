@@ -7,14 +7,13 @@ from PyQt6.QtWidgets import (
     QMessageBox,
 )
 
+
 class AddTaskDialog(QDialog):
+    """Dialog to collect a task's description and frequency."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add New Task")
-    def __init__(self, db_manager, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Add New Task")
-        self.db_manager = db_manager
 
         self.description_input = QLineEdit()
         self.frequency_input = QLineEdit()
@@ -40,9 +39,7 @@ class AddTaskDialog(QDialog):
         description = self.description_input.text().strip()
         frequency = self.frequency_input.text().strip()
         if not description or not frequency:
-            QMessageBox.warning(
-                self, "Required fields", "Please fill in all fields."
-            )
+            QMessageBox.warning(self, "Required fields", "Please fill in all fields.")
             return
 
         super().accept()
