@@ -29,7 +29,7 @@ class AgentWorker(QObject):
         self.agent = agent
         self.prompt = prompt
 
-    def run(self):  # se ejecuta dentro del hilo
+    def run(self):  # executes within the thread
         loop = asyncio.new_event_loop()
         try:
             asyncio.set_event_loop(loop)
