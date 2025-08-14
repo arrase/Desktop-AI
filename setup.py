@@ -6,7 +6,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         "PyQt6",
-        "openai-agents"
+        "openai-agents",
+        "markdown2"
     ],
     entry_points={
         "console_scripts": [
