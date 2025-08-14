@@ -2,12 +2,13 @@
 
 **Work in Progress**
 
-This is a simple desktop AI chat application. It provides a user interface to interact with a local AI model.
+This is a simple desktop AI chat application. It provides a user interface to interact with a local AI model, and it integrates with the system tray for easy access. The application uses [Ollama](https://ollama.com/) to load and serve local models.
 
 ## Features
 
 *   A simple chat interface.
-*   Interaction with a local AI model.
+*   System tray integration.
+*   Interaction with a local AI model via Ollama.
 
 ## Future Development
 
