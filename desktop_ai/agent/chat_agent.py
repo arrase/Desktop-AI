@@ -10,8 +10,7 @@ from dataclasses import dataclass
 from typing import Optional
 import asyncio
 
-from agents import Agent, Runner, OpenAIChatCompletionsModel
-from agents._client import AsyncOpenAI  # type: ignore  # upstream private import
+from agents import Agent, Runner, OpenAIChatCompletionsModel, AsyncOpenAI
 
 _DEFAULT_MODEL = "gpt-oss:20b"
 _DEFAULT_BASE_URL = "http://localhost:11434/v1"
