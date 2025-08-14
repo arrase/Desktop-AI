@@ -6,6 +6,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "PyQt6",
+        "openai-agents"
     ],
     entry_points={
         "console_scripts": [

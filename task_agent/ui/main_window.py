@@ -1,12 +1,27 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QListWidget, QPushButton, QListWidgetItem
-from .task_widget_item import TaskWidgetItem
-from .add_task_dialog import AddTaskDialog
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton
+from PyQt6.QtCore import QThread, pyqtSignal, QObject
+from ..agent import ChatAgent
+import asyncio
+
+class AgentWorker(QObject):
+    response_received = pyqtSignal(str)
+
+    def __init__(self, agent, prompt):
+        super().__init__()
+        self.agent = agent
+        self.prompt = prompt
+
+    def run(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        response = loop.run_until_complete(self.agent.get_response(self.prompt))
+        self.response_received.emit(response)
 
 class MainWindow(QMainWindow):
-    def __init__(self, db_manager):
+    def __init__(self):
         super().__init__()
-        self.db_manager = db_manager
-        self.setWindowTitle("Task Manager")
+        self.agent = ChatAgent()
+        self.setWindowTitle("Chatbot")
         self.resize(800, 600)
 
         central_widget = QWidget()
@@ -14,39 +29,42 @@ class MainWindow(QMainWindow):
 
         layout = QVBoxLayout(central_widget)
 
-        self.task_list = QListWidget()
-        layout.addWidget(self.task_list)
+        self.chat_history = QTextEdit()
+        self.chat_history.setReadOnly(True)
+        layout.addWidget(self.chat_history)
 
-        self.add_task_button = QPushButton("Add Task")
-        self.add_task_button.clicked.connect(self.show_add_task_dialog)
-        layout.addWidget(self.add_task_button)
+        self.input_box = QLineEdit()
+        self.input_box.returnPressed.connect(self.send_message)
+        layout.addWidget(self.input_box)
 
-        self.load_tasks()
+        self.send_button = QPushButton("Send")
+        self.send_button.clicked.connect(self.send_message)
+        layout.addWidget(self.send_button)
 
-    def load_tasks(self):
-        self.task_list.clear()
-        tasks = self.db_manager.get_all_tasks()
-        for task_id, description, frequency in tasks:
-            item = QListWidgetItem(self.task_list)
-            widget = TaskWidgetItem(task_id, description, frequency)
-            widget.taskDeleted.connect(self.delete_task)
-            item.setSizeHint(widget.sizeHint())
-            self.task_list.addItem(item)
-            self.task_list.setItemWidget(item, widget)
+    def send_message(self):
+        user_message = self.input_box.text().strip()
+        if not user_message:
+            return
 
-    def show_add_task_dialog(self):
-        dialog = AddTaskDialog(self)
-        if dialog.exec():
-            task_data = dialog.get_task_data()
-            self.db_manager.add_task(
-                task_data["description"], task_data["frequency"]
-            )
-            self.load_tasks()
+        self.chat_history.append(f"<b>You:</b> {user_message}")
+        self.input_box.clear()
 
-    def delete_task(self, task_id):
-        self.db_manager.delete_task(task_id)
-        self.load_tasks()
+        self.thread = QThread()
+        self.worker = AgentWorker(self.agent, user_message)
+        self.worker.moveToThread(self.thread)
 
-    def closeEvent(self, event):
-        event.ignore()
-        self.hide()
+        self.thread.started.connect(self.worker.run)
+        self.worker.response_received.connect(self.handle_response)
+        self.worker.response_received.connect(self.thread.quit)
+        self.worker.response_received.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+
+        self.thread.start()
+        self.send_button.setEnabled(False)
+        self.input_box.setEnabled(False)
+
+    def handle_response(self, response):
+        self.chat_history.append(f"<b>Assistant:</b> {response}")
+        self.send_button.setEnabled(True)
+        self.input_box.setEnabled(True)
+        self.input_box.setFocus()
