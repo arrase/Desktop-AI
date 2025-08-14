@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
         self._thread: QThread | None = None
         self._worker: AgentWorker | None = None
 
-    # ---------------- Helpers internos ----------------
+    # ---------------- Internal Helpers ----------------
     def _thread_active(self) -> bool:
         if self._thread is None:
             return False
@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
         self._thread = None
         self._worker = None
 
-    # ---------------- Acciones UI ----------------
+    # ---------------- UI Actions ----------------
     def send_message(self):
         user_message = self.input_box.text().strip()
         if not user_message:
@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
         self.input_box.setEnabled(True)
         self.input_box.setFocus()
 
-    # ---------------- Eventos ----------------
+    # ---------------- Events ----------------
     def closeEvent(self, event: QCloseEvent):  # type: ignore[override]
         self.hide()
         event.ignore()
