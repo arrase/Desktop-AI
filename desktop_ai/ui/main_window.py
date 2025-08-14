@@ -20,7 +20,7 @@ from .components import (  # type: ignore
 
 
 class AgentWorker(QObject):
-    """Worker que ejecuta la petición asíncrona del agente en un hilo separado."""
+    """Worker that executes the agent's asynchronous request in a separate thread."""
 
     response_received = pyqtSignal(str)
 
