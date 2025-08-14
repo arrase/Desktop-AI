@@ -30,7 +30,8 @@ class AgentWorker(QObject):
         loop = asyncio.new_event_loop()
         try:
             asyncio.set_event_loop(loop)
-            response = loop.run_until_complete(self.agent.get_response(self.prompt))
+            response = loop.run_until_complete(
+                self.agent.get_response(self.prompt))
         finally:
             loop.close()
         self.response_received.emit(response)
@@ -51,7 +52,8 @@ class MainWindow(QMainWindow):
 
         self.chat_history = QTextEdit()
         self.chat_history.setReadOnly(True)
-        self.chat_history.setHtml("<html><body><div id='chat-root'></div></body></html>")
+        self.chat_history.setHtml(
+            "<html><body><div id='chat-root'></div></body></html>")
         layout.addWidget(self.chat_history)
 
         input_row = QHBoxLayout()
@@ -123,7 +125,8 @@ class MainWindow(QMainWindow):
         """Append a bubble snippet rebuilding the whole document (simple approach)."""
         self._messages.append(snippet)
         html_doc = (
-            "<html><body><div id='chat-root'>" + "".join(self._messages) + "</div></body></html>"
+            "<html><body><div id='chat-root'>" +
+            "".join(self._messages) + "</div></body></html>"
         )
         self.chat_history.setHtml(html_doc)
     # Auto scroll to bottom
