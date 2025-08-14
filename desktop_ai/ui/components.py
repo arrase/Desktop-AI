@@ -1,6 +1,7 @@
 """UI helper components and style constants.
 
 Keeps `main_window` lean and focused on interactions.
+Bubble styles are inline so the QTextEdit renderer (limited CSS) applies them reliably.
 """
 from __future__ import annotations
 
@@ -11,7 +12,7 @@ import markdown2
 APP_STYLESHEET = dedent(
     """
     QMainWindow { background-color: #2E3440; }
-    QTextEdit { background-color: #3B4252; color: #ECEFF4; border: 1px solid #4C566A; border-radius: 5px; font-size: 14px; padding: 5px; }
+    QTextEdit { background-color: #2E3440; color: #ECEFF4; border: 1px solid #4C566A; border-radius: 6px; font-size: 14px; padding: 8px; }
     QLineEdit { background-color: #3B4252; color: #ECEFF4; border: 1px solid #4C566A; border-radius: 5px; padding: 8px; font-size: 14px; }
     QPushButton { background-color: #5E81AC; color: #ECEFF4; border: none; border-radius: 5px; padding: 8px 16px; font-size: 14px; font-weight: bold; }
     QPushButton:hover { background-color: #81A1C1; }
@@ -23,44 +24,55 @@ APP_STYLESHEET = dedent(
     """
 ).strip()
 
+BASE_BUBBLE_STYLE = (
+  "padding:10px 14px; max-width:70%; font-size:14px; line-height:1.4; "
+  "border:1px solid #465064; box-shadow:0 2px 4px rgba(0,0,0,.35); "
+  "font-family:'Segoe UI', sans-serif;"
+)
+"""Both user and assistant bubble styles are identical; consolidated."""
+_SHARED_BUBBLE_STYLE = (
+  "background:#3B4252; color:#E5E9F0; "
+  + BASE_BUBBLE_STYLE + " border-radius:4px 16px 16px 16px;"
+)
+# Separate aliases for external compatibility and semantic clarity.
+USER_BUBBLE_STYLE = ASSISTANT_BUBBLE_STYLE = _SHARED_BUBBLE_STYLE
+CONTENT_P_STYLE = "margin:0;"
+
 
 def render_user_message(user_text: str) -> str:
-    safe_text = html.escape(user_text)
-    return f"""
-    <div style='text-align: right; margin-bottom: 10px;'>
-      <div style='background-color: #5E81AC; color: #ECEFF4; display: inline-block; padding: 10px; border-radius: 8px; max-width: 70%; text-align: left;'>
-        <b>You</b>
-        <p style='margin:5px 0 0 0;'>{safe_text}</p>
-      </div>
-    </div>
-    """.strip()
+  """Return HTML for a user message (right aligned bubble)."""
+  safe_text = html.escape(user_text).replace("\n", "<br>")
+  return (
+    "<div style='text-align:right; margin:8px 0;'>"
+    f"<div style='display:inline-block; vertical-align:top; {USER_BUBBLE_STYLE}'>"
+    f"<p style='{CONTENT_P_STYLE}'>{safe_text}</p>"
+    "</div></div>"
+  )
 
 
 def render_assistant_message(markdown: str) -> str:
-    
-    html_response = markdown2.markdown(
-        markdown, extras=["fenced-code-blocks", "tables"]
-    )
-
-    html_response = html_response.replace(
-        '<code>',
-        '<code style="background-color:#4C566A; border-radius:3px; padding:2px 4px; font-family:monospace;">'
-    ).replace(
-        '<pre>',
-        '<pre style="background-color:#434C5E; border:1px solid #4C566A; border-radius:5px; padding:10px; white-space:pre-wrap; word-wrap:break-word;">'
-    )
-    return f"""
-  <div style='text-align: left; margin-bottom: 10px;'>
-    <div style='background-color: #434C5E; color: #D8DEE9; display: inline-block; padding: 10px; border-radius: 8px; max-width: 70%; text-align: left;'>
-    <b>Assistant</b>
-    <div style='margin:5px 0 0 0;'>{html_response}</div>
-    </div>
-  </div>
-  """.strip()
+  """Convert assistant markdown to an HTML bubble (left aligned)."""
+  html_response = markdown2.markdown(markdown, extras=["fenced-code-blocks", "tables"])
+  html_response = html_response.replace(
+    '<pre>',
+    '<pre style="background:#434C5E; border:1px solid #4C566A; border-radius:8px; padding:10px; white-space:pre-wrap; word-wrap:break-word; font-family:monospace; font-size:13px; margin:6px 0 0 0;">'
+  ).replace(
+    '<code>',
+    '<code style="background:#4C566A; border-radius:4px; padding:2px 4px; font-family:monospace; font-size:13px;">'
+  )
+  return (
+    "<div style='text-align:left; margin:8px 0;'>"
+    f"<div style='display:inline-block; vertical-align:top; {ASSISTANT_BUBBLE_STYLE}'>"
+    f"<div>{html_response}</div>"
+    "</div></div>"
+  )
 
 
 __all__ = [
     "APP_STYLESHEET",
+  "BASE_BUBBLE_STYLE",
+  "USER_BUBBLE_STYLE",
+  "ASSISTANT_BUBBLE_STYLE",
     "render_user_message",
     "render_assistant_message",
 ]

@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QWidget,
     QVBoxLayout,
+    QHBoxLayout,
     QTextEdit,
     QLineEdit,
     QPushButton,
@@ -12,11 +13,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, QObject
 import asyncio
 
 from ..agent import ChatAgent  # type: ignore
-from .components import (  # type: ignore
-    APP_STYLESHEET,
-    render_user_message,
-    render_assistant_message,
-)
+from .components import APP_STYLESHEET, render_user_message, render_assistant_message  # type: ignore
 
 
 class AgentWorker(QObject):
@@ -54,19 +51,26 @@ class MainWindow(QMainWindow):
 
         self.chat_history = QTextEdit()
         self.chat_history.setReadOnly(True)
+        self.chat_history.setHtml("<html><body><div id='chat-root'></div></body></html>")
         layout.addWidget(self.chat_history)
 
+        input_row = QHBoxLayout()
         self.input_box = QLineEdit()
+        self.input_box.setPlaceholderText("Type a message and press Enter…")
         self.input_box.returnPressed.connect(self.send_message)
-        layout.addWidget(self.input_box)
+        input_row.addWidget(self.input_box, stretch=1)
 
         self.send_button = QPushButton("Send")
         self.send_button.clicked.connect(self.send_message)
-        layout.addWidget(self.send_button)
+        input_row.addWidget(self.send_button)
+
+        layout.addLayout(input_row)
 
         # Internal references to thread / worker
         self._thread: QThread | None = None
         self._worker: AgentWorker | None = None
+        # Store individual message HTML snippets
+        self._messages: list[str] = []
 
     # ---------------- Internal Helpers ----------------
     def _thread_active(self) -> bool:
@@ -87,8 +91,7 @@ class MainWindow(QMainWindow):
         user_message = self.input_box.text().strip()
         if not user_message:
             return
-
-        self.chat_history.append(render_user_message(user_message))
+        self._append_chat_html(render_user_message(user_message))
         self.input_box.clear()
 
         # Avoid overlap (could implement queue in the future)
@@ -111,10 +114,22 @@ class MainWindow(QMainWindow):
         self.input_box.setEnabled(False)
 
     def handle_response(self, response: str):
-        self.chat_history.append(render_assistant_message(response))
+        self._append_chat_html(render_assistant_message(response))
         self.send_button.setEnabled(True)
         self.input_box.setEnabled(True)
         self.input_box.setFocus()
+
+    def _append_chat_html(self, snippet: str):
+        """Append a bubble snippet rebuilding the whole document (simple approach)."""
+        self._messages.append(snippet)
+        html_doc = (
+            "<html><body><div id='chat-root'>" + "".join(self._messages) + "</div></body></html>"
+        )
+        self.chat_history.setHtml(html_doc)
+    # Auto scroll to bottom
+        sb = self.chat_history.verticalScrollBar()
+        if sb is not None:
+            sb.setValue(sb.maximum())
 
     # ---------------- Events ----------------
     def closeEvent(self, event: QCloseEvent):  # type: ignore[override]
