@@ -1,5 +1,4 @@
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtCore import QThread, pyqtSignal, QObject
 from ..agent import ChatAgent
