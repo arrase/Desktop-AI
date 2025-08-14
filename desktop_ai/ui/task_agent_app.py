@@ -1,14 +1,15 @@
-from PyQt6.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QStyle, QMessageBox
+from PyQt6.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QStyle
 from PyQt6.QtGui import QAction
 from .main_window import MainWindow
 import sys
+
 
 class TaskAgentApp(QApplication):
     def __init__(self, argv):
         super().__init__(argv)
         self.setQuitOnLastWindowClosed(False)
 
-        # Main Window
+        # Main Window (create but do not show)
         self.main_window = MainWindow()
 
         # System Tray Icon
@@ -37,12 +38,17 @@ class TaskAgentApp(QApplication):
         self.main_window.activateWindow()
 
     def on_tray_icon_activated(self, reason):
+        # Toggle main window visibility on left click
         if reason == QSystemTrayIcon.ActivationReason.Trigger:  # Left click
-            self.show_main_window()
+            if self.main_window.isVisible():
+                self.main_window.hide()
+            else:
+                self.show_main_window()
 
     def on_exit(self):
         self.quit()
 
     def run(self):
-        self.main_window.show()
+        # Start minimized to the system tray (do not show main window now)
+        # The tray icon is already shown in __init__
         sys.exit(self.exec())
