@@ -49,5 +49,5 @@ class ChatAgent:
 		except Exception as e:
 			return f"Error: {e}"
 
-
+from .chat_agent import ChatAgent, ChatAgentConfig
 __all__ = ["ChatAgent", "ChatAgentConfig"]
