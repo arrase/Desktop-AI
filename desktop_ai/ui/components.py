@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from textwrap import dedent
 import html
-import markdown2  # type: ignore
+import markdown2
 
 APP_STYLESHEET = dedent(
     """
@@ -37,20 +37,19 @@ def render_user_message(user_text: str) -> str:
 
 
 def render_assistant_message(markdown: str) -> str:
-  if markdown2:  # type: ignore
-    html_response = markdown2.markdown(markdown, extras=["fenced-code-blocks", "tables"])  # type: ignore
-  else:
-    # Degraded mode: simple escaping
-    html_response = f"<p>{html.escape(markdown)}</p>"
+    
+    html_response = markdown2.markdown(
+        markdown, extras=["fenced-code-blocks", "tables"]
+    )
 
-  html_response = html_response.replace(
-    '<code>',
-    '<code style="background-color:#4C566A; border-radius:3px; padding:2px 4px; font-family:monospace;">'
-  ).replace(
-    '<pre>',
-    '<pre style="background-color:#434C5E; border:1px solid #4C566A; border-radius:5px; padding:10px; white-space:pre-wrap; word-wrap:break-word;">'
-  )
-  return f"""
+    html_response = html_response.replace(
+        '<code>',
+        '<code style="background-color:#4C566A; border-radius:3px; padding:2px 4px; font-family:monospace;">'
+    ).replace(
+        '<pre>',
+        '<pre style="background-color:#434C5E; border:1px solid #4C566A; border-radius:5px; padding:10px; white-space:pre-wrap; word-wrap:break-word;">'
+    )
+    return f"""
   <div style='text-align: left; margin-bottom: 10px;'>
     <div style='background-color: #434C5E; color: #D8DEE9; display: inline-block; padding: 10px; border-radius: 8px; max-width: 70%; text-align: left;'>
     <b>Assistant</b>
@@ -61,7 +60,7 @@ def render_assistant_message(markdown: str) -> str:
 
 
 __all__ = [
-  "APP_STYLESHEET",
-  "render_user_message",
-  "render_assistant_message",
+    "APP_STYLESHEET",
+    "render_user_message",
+    "render_assistant_message",
 ]
