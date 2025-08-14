@@ -22,7 +22,7 @@ class TaskAgentApp(QApplication):
         # Tray Menu
         tray_menu = QMenu()
         show_action = QAction("Show", self)
-        show_action.triggered.connect(self.main_window.show)
+        show_action.triggered.connect(self.show_main_window)
         tray_menu.addAction(show_action)
 
         exit_action = QAction("Exit", self)
@@ -32,9 +32,13 @@ class TaskAgentApp(QApplication):
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.show()
 
+    def show_main_window(self):
+        self.main_window.showNormal()
+        self.main_window.activateWindow()
+
     def on_tray_icon_activated(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:  # Left click
-            self.main_window.show()
+            self.show_main_window()
 
     def on_exit(self):
         self.quit()
