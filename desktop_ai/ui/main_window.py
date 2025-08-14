@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
         self.send_button.clicked.connect(self.send_message)
         layout.addWidget(self.send_button)
 
-        # Referencias internas a hilo / worker
+        # Internal references to thread / worker
         self._thread: QThread | None = None
         self._worker: AgentWorker | None = None
 
