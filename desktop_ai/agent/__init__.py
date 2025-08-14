@@ -31,7 +31,7 @@ class ChatAgent:
 	def __init__(self, config: Optional[ChatAgentConfig] = None):
 		self.config = config or ChatAgentConfig()
 		if AsyncOpenAI is None:
-			raise RuntimeError("AsyncOpenAI no disponible en la versión instalada de 'agents'. Actualiza el paquete o ajusta la implementación.")
+			raise RuntimeError("AsyncOpenAI not available in the installed version of 'agents'. Update the package or adjust the implementation.")
 		self.model = OpenAIChatCompletionsModel(
 			model=self.config.model,
 			openai_client=AsyncOpenAI(base_url=self.config.base_url, api_key=self.config.api_key),
