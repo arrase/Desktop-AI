@@ -1,32 +1,51 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton
+"""Main application chat window."""
+from PyQt6.QtWidgets import (
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QTextEdit,
+    QLineEdit,
+    QPushButton,
+)
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtCore import QThread, pyqtSignal, QObject
-from ..agent import ChatAgent
 import asyncio
+
+from ..agent import ChatAgent  # type: ignore
+from .components import (  # type: ignore
+    APP_STYLESHEET,
+    render_user_message,
+    render_assistant_message,
+)
 
 
 class AgentWorker(QObject):
+    """Worker that executes the agent's asynchronous request in a separate thread."""
+
     response_received = pyqtSignal(str)
 
-    def __init__(self, agent, prompt):
+    def __init__(self, agent: ChatAgent, prompt: str):
         super().__init__()
         self.agent = agent
         self.prompt = prompt
 
-    def run(self):
+    def run(self):  # executes within the thread
         loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        response = loop.run_until_complete(self.agent.get_response(self.prompt))
+        try:
+            asyncio.set_event_loop(loop)
+            response = loop.run_until_complete(self.agent.get_response(self.prompt))
+        finally:
+            loop.close()
         self.response_received.emit(response)
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # Create agent lazily to avoid heavy imports at module import time if desired
         self.agent = ChatAgent()
         self.setWindowTitle("Chatbot")
         self.resize(800, 600)
+        self.setStyleSheet(APP_STYLESHEET)
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -45,34 +64,59 @@ class MainWindow(QMainWindow):
         self.send_button.clicked.connect(self.send_message)
         layout.addWidget(self.send_button)
 
+        # Internal references to thread / worker
+        self._thread: QThread | None = None
+        self._worker: AgentWorker | None = None
+
+    # ---------------- Internal Helpers ----------------
+    def _thread_active(self) -> bool:
+        if self._thread is None:
+            return False
+        try:
+            return self._thread.isRunning()
+        except RuntimeError:
+            self._thread = None
+            return False
+
+    def _cleanup_thread(self):  # Qt slot for cleaning up thread references
+        self._thread = None
+        self._worker = None
+
+    # ---------------- UI Actions ----------------
     def send_message(self):
         user_message = self.input_box.text().strip()
         if not user_message:
             return
 
-        self.chat_history.append(f"<b>You:</b> {user_message}")
+        self.chat_history.append(render_user_message(user_message))
         self.input_box.clear()
 
-        self.thread = QThread()
-        self.worker = AgentWorker(self.agent, user_message)
-        self.worker.moveToThread(self.thread)
+        # Avoid overlap (could implement queue in the future)
+        if self._thread_active():
+            return
 
-        self.thread.started.connect(self.worker.run)
-        self.worker.response_received.connect(self.handle_response)
-        self.worker.response_received.connect(self.thread.quit)
-        self.worker.response_received.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
+        self._thread = QThread()
+        self._worker = AgentWorker(self.agent, user_message)
+        self._worker.moveToThread(self._thread)
 
-        self.thread.start()
+        self._thread.started.connect(self._worker.run)
+        self._worker.response_received.connect(self.handle_response)
+        self._worker.response_received.connect(self._thread.quit)
+        self._worker.response_received.connect(self._worker.deleteLater)
+        self._thread.finished.connect(self._cleanup_thread)
+        self._thread.finished.connect(self._thread.deleteLater)
+
+        self._thread.start()
         self.send_button.setEnabled(False)
         self.input_box.setEnabled(False)
 
-    def handle_response(self, response):
-        self.chat_history.append(f"<b>Assistant:</b> {response}")
+    def handle_response(self, response: str):
+        self.chat_history.append(render_assistant_message(response))
         self.send_button.setEnabled(True)
         self.input_box.setEnabled(True)
         self.input_box.setFocus()
 
-    def closeEvent(self, event: QCloseEvent):
+    # ---------------- Events ----------------
+    def closeEvent(self, event: QCloseEvent):  # type: ignore[override]
         self.hide()
         event.ignore()
