@@ -179,14 +179,13 @@ class ChatWidget(QScrollArea):
         # Add stretch at the end to push messages to the top
         self.messages_layout.addStretch()
     
-    def add_user_message(self, text: str):
-        """Add user message."""
+    def _add_message_widget(self, widget: QWidget):
+        """Helper method to add a message widget with proper stretch handling."""
         # Remove the stretch temporarily
         self.messages_layout.takeAt(self.messages_layout.count() - 1)
         
-        # Add the message
-        bubble = MessageBubble(text, is_user=True)
-        self.messages_layout.addWidget(bubble)
+        # Add the message widget
+        self.messages_layout.addWidget(widget)
         
         # Add stretch back
         self.messages_layout.addStretch()
@@ -194,20 +193,15 @@ class ChatWidget(QScrollArea):
         # Scroll to bottom
         self.scroll_to_bottom()
     
+    def add_user_message(self, text: str):
+        """Add user message."""
+        bubble = MessageBubble(text, is_user=True)
+        self._add_message_widget(bubble)
+    
     def add_assistant_message(self, text: str):
         """Add assistant message."""
-        # Remove the stretch temporarily
-        self.messages_layout.takeAt(self.messages_layout.count() - 1)
-        
-        # Add the message
         bubble = MessageBubble(text, is_user=False)
-        self.messages_layout.addWidget(bubble)
-        
-        # Add stretch back
-        self.messages_layout.addStretch()
-        
-        # Scroll to bottom
-        self.scroll_to_bottom()
+        self._add_message_widget(bubble)
     
     def clear_chat(self):
         """Clear all messages."""
