@@ -144,13 +144,15 @@ QComboBox#modelSelector {
     border-right: none;
     padding: 8px 12px; 
     font-size: 14px; 
-    min-width: 200px; 
+    min-width: 200px;
+    min-height: 16px;
     font-family: 'Segoe UI', 'SF Pro Display', system-ui, sans-serif;
 }
 
 QComboBox#modelSelector:focus {
-    border: 2px solid #89b4fa;
+    border: 2px solid #313244;
     border-right: none;
+    background-color: #181825;
 }
 
 QPushButton#refreshButtonIntegrated {
@@ -166,24 +168,19 @@ QPushButton#refreshButtonIntegrated {
     font-size: 14px;
     font-weight: bold;
     min-height: 16px;
+    max-height: 50px;
     max-width: 36px;
 }
 
 QPushButton#refreshButtonIntegrated:hover {
     background-color: #45475a;
-    border: 2px solid #45475a;
+    border: 2px solid #313244;
     border-left: none;
 }
 
 QPushButton#refreshButtonIntegrated:pressed {
     background-color: #585b70;
-    border: 2px solid #585b70;
-    border-left: none;
-}
-
-/* Cuando el combobox tiene focus, el botón debe coincidir */
-QComboBox#modelSelector:focus + QPushButton#refreshButtonIntegrated {
-    border: 2px solid #89b4fa;
+    border: 2px solid #313244;
     border-left: none;
 }
 
