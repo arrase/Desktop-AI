@@ -8,6 +8,11 @@ from .constants import DEFAULT_MODEL, CONFIG_DIR_NAME, CONFIG_FILE_NAME, SYSTEM_
 
 class Config:
     """Centralized configuration management."""
+
+    _DEFAULT_CONFIG = {
+        "model": DEFAULT_MODEL,
+        "system_prompt": SYSTEM_INSTRUCTIONS
+    }
     
     def __init__(self):
         self._config_dir = Path.home() / CONFIG_DIR_NAME
@@ -22,25 +27,21 @@ class Config:
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from file, return defaults if file doesn't exist."""
-        defaults = {
-            "model": DEFAULT_MODEL,
-            "system_prompt": SYSTEM_INSTRUCTIONS
-        }
         try:
             if self._config_file.exists():
                 with open(self._config_file, 'r', encoding='utf-8') as f:
                     config = json.load(f)
                     # Ensure essential keys are present
                     if 'model' not in config:
-                        config['model'] = defaults['model']
+                        config['model'] = self._DEFAULT_CONFIG['model']
                     if 'system_prompt' not in config:
-                        config['system_prompt'] = defaults['system_prompt']
+                        config['system_prompt'] = self._DEFAULT_CONFIG['system_prompt']
                     return config
             else:
-                return defaults
+                return self._DEFAULT_CONFIG.copy()
         except (json.JSONDecodeError, IOError):
             # If config file is corrupted or can't be read, return defaults
-            return defaults
+            return self._DEFAULT_CONFIG.copy()
     
     def save(self) -> None:
         """Save configuration to file."""
