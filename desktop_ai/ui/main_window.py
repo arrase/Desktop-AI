@@ -11,13 +11,13 @@ from PyQt6.QtWidgets import (
     QLabel,
 )
 from PyQt6.QtGui import QCloseEvent
-from PyQt6.QtCore import QThread, pyqtSignal, QObject
 
 from ..agent import ChatAgent
-from ..services import OllamaService
+from ..services import OllamaService, SessionService
 from ..core.config import get_config
 from ..utils import ThreadManager
 from .components import APP_STYLESHEET, render_user_message, render_assistant_message
+from .session_history_window import SessionHistoryWindow
 
 
 class MainWindow(QMainWindow):
@@ -30,6 +30,9 @@ class MainWindow(QMainWindow):
         
         # Initialize agent with the configured model
         self.agent = ChatAgent()
+        
+        self.session_service = SessionService()
+        self.current_session_id = None
         
         self.thread_manager = ThreadManager()
         
@@ -70,6 +73,17 @@ class MainWindow(QMainWindow):
         reset_button.setAccessibleName("Reset conversation")
         reset_button.clicked.connect(self._on_reset_clicked)
         model_row.addWidget(reset_button)
+
+        history_button = QPushButton("📋")
+        history_button.setToolTip("Ver historial de conversaciones")
+        history_button.setAccessibleName("Ver historial")
+        history_button.clicked.connect(self._on_history_clicked)
+        model_row.addWidget(history_button)
+
+        # Session status indicator
+        self.session_status_label = QLabel("Nueva conversación")
+        self.session_status_label.setStyleSheet("color: #8FBCBB; font-size: 11px; padding: 4px;")
+        model_row.addWidget(self.session_status_label)
 
         model_row.addStretch()  # Push everything to the left
         layout.addLayout(model_row)
@@ -158,6 +172,51 @@ class MainWindow(QMainWindow):
         """Handle reset button click."""
         self._clear_chat_history()
         self.agent.reset()
+        self.current_session_id = None
+        self.session_status_label.setText("Nueva conversación")
+
+    def _on_history_clicked(self):
+        """Handle history button click."""
+        history_window = SessionHistoryWindow(self)
+        history_window.session_selected.connect(self._load_session)
+        history_window.exec()
+
+    def _load_session(self, session_id: str):
+        """Load an existing session and display its messages."""
+        try:
+            # Load the session in the agent
+            self.agent.load_session(session_id)
+            self.current_session_id = session_id
+            
+            # Clear current chat and load session messages
+            self._clear_chat_history()
+            
+            # Get messages from the session service
+            messages = self.session_service.get_session_messages(session_id)
+            
+            # Display the messages
+            for message in messages:
+                role = message.get('role', '')
+                content = message.get('content', '')
+                
+                if role == 'user':
+                    self._append_chat_html(render_user_message(content))
+                elif role == 'assistant':
+                    # Extract text content from assistant message structure
+                    if isinstance(content, list) and len(content) > 0:
+                        if isinstance(content[0], dict) and 'text' in content[0]:
+                            text_content = content[0]['text']
+                        else:
+                            text_content = str(content)
+                    else:
+                        text_content = str(content)
+                    self._append_chat_html(render_assistant_message(text_content))
+            
+            # Update session status
+            self.session_status_label.setText(f"Conversación cargada ({session_id[:8]}...)")
+            
+        except Exception as e:
+            self._append_chat_html(render_assistant_message(f"Error cargando la sesión: {e}"))
 
     # ---------------- Events ----------------
     def closeEvent(self, event: QCloseEvent):  # type: ignore[override]
@@ -206,3 +265,5 @@ class MainWindow(QMainWindow):
             # Update the agent with the new model
             self.agent.update_model(model_name)
             self._clear_chat_history()
+            self.current_session_id = None
+            self.session_status_label.setText("Nueva conversación")

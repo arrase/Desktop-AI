@@ -81,6 +81,10 @@ class ChatAgent:
             str(uuid.uuid4()), CONVERSATION_DB_PATH
         )
 
+    def load_session(self, session_id: str):
+        """Load an existing session by ID."""
+        self.session = SQLiteSession(session_id, CONVERSATION_DB_PATH)
+
     async def get_response(self, prompt: str) -> str:
         """Return assistant reply for prompt.
 
