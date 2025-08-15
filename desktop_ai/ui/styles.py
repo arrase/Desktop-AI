@@ -127,6 +127,66 @@ QComboBox {
     font-family: 'Segoe UI', 'SF Pro Display', system-ui, sans-serif;
 }
 
+/* Model selector integrado con refresh button */
+QWidget#modelContainer {
+    background-color: transparent;
+    border: none;
+}
+
+QComboBox#modelSelector { 
+    background-color: #181825; 
+    color: #cdd6f4; 
+    border: 2px solid #313244; 
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-right: none;
+    padding: 8px 12px; 
+    font-size: 14px; 
+    min-width: 200px; 
+    font-family: 'Segoe UI', 'SF Pro Display', system-ui, sans-serif;
+}
+
+QComboBox#modelSelector:focus {
+    border: 2px solid #89b4fa;
+    border-right: none;
+}
+
+QPushButton#refreshButtonIntegrated {
+    background-color: #313244;
+    color: #cdd6f4;
+    border: 2px solid #313244;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-left: none;
+    padding: 8px 8px;
+    font-size: 14px;
+    font-weight: bold;
+    min-height: 16px;
+    max-width: 36px;
+}
+
+QPushButton#refreshButtonIntegrated:hover {
+    background-color: #45475a;
+    border: 2px solid #45475a;
+    border-left: none;
+}
+
+QPushButton#refreshButtonIntegrated:pressed {
+    background-color: #585b70;
+    border: 2px solid #585b70;
+    border-left: none;
+}
+
+/* Cuando el combobox tiene focus, el botón debe coincidir */
+QComboBox#modelSelector:focus + QPushButton#refreshButtonIntegrated {
+    border: 2px solid #89b4fa;
+    border-left: none;
+}
+
 QComboBox:focus {
     border: 2px solid #89b4fa;
 }
@@ -135,8 +195,16 @@ QComboBox::drop-down {
     border: none; 
     width: 30px;
     background-color: #313244;
-    border-top-right-radius: 6px;
-    border-bottom-right-radius: 6px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+QComboBox#modelSelector::drop-down { 
+    border: none; 
+    width: 30px;
+    background-color: #313244;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
 }
 
 QComboBox::down-arrow { 
