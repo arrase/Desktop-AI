@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Dict, Any
 
-_DEFAULT_MODEL = "gpt-oss:20B"
+_DEFAULT_MODEL = "gpt-oss:20b"
 _CONFIG_DIR = Path.home() / ".config" / "desktop-ai"
 _CONFIG_FILE = _CONFIG_DIR / "config.json"
 
