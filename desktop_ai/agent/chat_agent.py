@@ -9,11 +9,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 import asyncio
+import uuid
 
-from agents import Agent, Runner, OpenAIChatCompletionsModel
+from agents import Agent, Runner, OpenAIChatCompletionsModel, SQLiteSession
 from openai import AsyncOpenAI
 from ..core.config import get_config
-from ..core.constants import DEFAULT_MODEL, OLLAMA_BASE_URL, API_KEY, SYSTEM_INSTRUCTIONS
+from ..core.constants import (
+    DEFAULT_MODEL,
+    OLLAMA_BASE_URL,
+    API_KEY,
+    SYSTEM_INSTRUCTIONS,
+    CONVERSATION_DB_PATH,
+)
 
 
 @dataclass
@@ -39,6 +46,7 @@ class ChatAgent:
             self.config.system_instructions = app_config.system_prompt
 
         self._create_agent()
+        self.reset()  # Initial session setup
 
     def _create_agent(self):
         """Create the agent with current configuration."""
@@ -58,6 +66,7 @@ class ChatAgent:
         """Updates the model used by the agent."""
         self.config.model = model_name
         self._create_agent()
+        self.reset()  # Reset conversation history for new model
 
     def update_system_prompt(self, system_prompt: str):
         """Updates the system prompt used by the agent."""
@@ -66,7 +75,10 @@ class ChatAgent:
 
     def reset(self):
         """Resets the agent's conversational state."""
-        self._create_agent()
+        # A new session is created with a unique ID for each conversation
+        self.session = SQLiteSession(
+            str(uuid.uuid4()), CONVERSATION_DB_PATH
+        )
 
     async def get_response(self, prompt: str) -> str:
         """Return assistant reply for prompt.
@@ -75,7 +87,7 @@ class ChatAgent:
         future we could raise instead and let UI decide.
         """
         try:
-            result = await Runner.run(self.agent, prompt)
+            result = await Runner.run(self.agent, prompt, session=self.session)
             return result.final_output
         except Exception as e:  # broad: upstream lib may raise varied errors
             return f"Error: {e}"  # keep short; UI already labels assistant

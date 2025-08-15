@@ -156,8 +156,8 @@ class MainWindow(QMainWindow):
 
     def _on_reset_clicked(self):
         """Handle reset button click."""
-        self.agent.reset()
         self._clear_chat_history()
+        self.agent.reset()
 
     # ---------------- Events ----------------
     def closeEvent(self, event: QCloseEvent):  # type: ignore[override]
