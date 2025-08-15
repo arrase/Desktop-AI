@@ -145,7 +145,7 @@ QComboBox#modelSelector {
     padding: 8px 12px; 
     font-size: 14px; 
     min-width: 200px;
-    min-height: 16px;
+    height: 34px;
     font-family: 'Segoe UI', 'SF Pro Display', system-ui, sans-serif;
 }
 
@@ -167,9 +167,8 @@ QPushButton#refreshButtonIntegrated {
     padding: 8px 8px;
     font-size: 14px;
     font-weight: bold;
-    min-height: 16px;
-    max-height: 50px;
-    max-width: 36px;
+    height: 34px;
+    width: 36px;
 }
 
 QPushButton#refreshButtonIntegrated:hover {
