@@ -31,7 +31,8 @@ class DesktopAI:
         # Set icon
         style = self.app.style()
         if style:
-            icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxQuestion)
+            icon = style.standardIcon(
+                QStyle.StandardPixmap.SP_MessageBoxQuestion)
             self.tray_icon.setIcon(icon)
 
         self.tray_icon.setToolTip("Desktop AI")
@@ -95,4 +96,8 @@ class DesktopAI:
 
     def run(self):
         """Run the application."""
-        sys.exit(self.app.exec())
+        # Start hidden by default since we're running as daemon
+        self.main_window.hide()
+
+        # Execute the Qt event loop
+        return self.app.exec()

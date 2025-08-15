@@ -10,6 +10,7 @@ SYSTEM_INSTRUCTIONS = "You are a helpful assistant"
 CONFIG_DIR = Path.home() / ".config" / "desktop-ai"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 DATABASE_PATH = CONFIG_DIR / "conversations.db"
+LOG_FILE = CONFIG_DIR / "desktop_ai.log"
 
 # Ensure directories exist
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
