@@ -73,13 +73,5 @@ def get_config() -> Config:
     """Get the global configuration instance."""
     global _config_instance
     if _config_instance is None:
-_config_lock = threading.Lock()
-
-def get_config() -> Config:
-    """Get the global configuration instance."""
-    global _config_instance
-    if _config_instance is None:
-        with _config_lock:
-            if _config_instance is None:
-                _config_instance = Config()
+        _config_instance = Config()
     return _config_instance
