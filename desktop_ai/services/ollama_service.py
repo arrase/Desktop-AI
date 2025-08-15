@@ -1,5 +1,6 @@
 """Simplified Ollama service."""
 import ollama
+import logging
 from typing import List
 
 
@@ -12,14 +13,12 @@ class OllamaService:
         try:
             response = ollama.list()
             models = []
-            if hasattr(response, 'models') and response.models:
-                for model in response.models:
-                    if hasattr(model, 'model'):
-                        models.append(model.model)
-                    elif isinstance(model, dict) and 'model' in model:
-                        models.append(model['model'])
+            if "models" in response:
+                for model_info in response["models"]:
+                    models.append(model_info["name"])
             return sorted(models)
-        except Exception:
+        except Exception as e:
+            logging.error(f"Error getting Ollama models: {e}")
             return []
     
     @staticmethod
@@ -28,5 +27,6 @@ class OllamaService:
         try:
             ollama.list()
             return True
-        except Exception:
+        except Exception as e:
+            logging.error(f"Error checking Ollama availability: {e}")
             return False

@@ -6,12 +6,12 @@ from PyQt6.QtGui import QAction
 from .windows import MainWindow, SettingsWindow
 
 
-class DesktopAI(QApplication):
+class DesktopAI:
     """Main application with system tray support."""
 
-    def __init__(self, argv):
-        super().__init__(argv)
-        self.setQuitOnLastWindowClosed(False)
+    def __init__(self, app: QApplication):
+        self.app = app
+        self.app.setQuitOnLastWindowClosed(False)
 
         # Check if system tray is available
         if not QSystemTrayIcon.isSystemTrayAvailable():
@@ -26,10 +26,10 @@ class DesktopAI(QApplication):
 
     def _setup_system_tray(self):
         """Setup system tray icon and menu."""
-        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon = QSystemTrayIcon()
 
         # Set icon
-        style = self.style()
+        style = self.app.style()
         if style:
             icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxQuestion)
             self.tray_icon.setIcon(icon)
@@ -47,20 +47,20 @@ class DesktopAI(QApplication):
 
     def _setup_tray_menu(self):
         """Setup system tray menu."""
-        menu = QMenu()
+        menu = QMenu(self.main_window)
 
-        show_action = QAction("Show", self)
+        show_action = QAction("Show", self.main_window)
         show_action.triggered.connect(self._show_window)
         menu.addAction(show_action)
 
-        settings_action = QAction("Settings", self)
+        settings_action = QAction("Settings", self.main_window)
         settings_action.triggered.connect(self._show_settings)
         menu.addAction(settings_action)
 
         menu.addSeparator()
 
-        exit_action = QAction("Exit", self)
-        exit_action.triggered.connect(self.quit)
+        exit_action = QAction("Exit", self.main_window)
+        exit_action.triggered.connect(self.app.quit)
         menu.addAction(exit_action)
 
         self.tray_icon.setContextMenu(menu)
@@ -95,4 +95,4 @@ class DesktopAI(QApplication):
 
     def run(self):
         """Run the application."""
-        sys.exit(self.exec())
+        sys.exit(self.app.exec())
