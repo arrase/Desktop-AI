@@ -41,6 +41,7 @@ class AgentWorker(QObject):
 
 
 class MainWindow(QMainWindow):
+
     def __init__(self):
         super().__init__()
         self.agent = ChatAgent()
@@ -48,8 +49,9 @@ class MainWindow(QMainWindow):
         self.resize(800, 600)
         self.setStyleSheet(APP_STYLESHEET)
 
-        # Initialize the thread attribute
+        # Initialize the thread and worker attributes
         self._thread = None
+        self._worker = None
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
