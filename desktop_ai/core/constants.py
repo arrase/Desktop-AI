@@ -13,3 +13,4 @@ CONFIG_FILE_NAME = "config.json"
 CONVERSATION_DB_PATH = str(
     Path(os.path.expanduser("~")) / CONFIG_DIR_NAME / "conversations.db"
 )
+Path(CONVERSATION_DB_PATH).parent.mkdir(parents=True, exist_ok=True)
