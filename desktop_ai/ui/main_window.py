@@ -24,8 +24,13 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.agent = ChatAgent()
+        
+        # Initialize config first
         self.config = get_config()
+        
+        # Initialize agent with the configured model
+        self.agent = ChatAgent()
+        
         self.thread_manager = ThreadManager()
         
         self.setWindowTitle("Chatbot")
@@ -146,34 +151,41 @@ class MainWindow(QMainWindow):
     # ---------------- Model Management ----------------
     def refresh_models(self):
         """Refresh the list of available models from Ollama."""
+        # Temporarily disconnect the signal to avoid triggering on_model_changed during setup
+        self.model_selector.currentTextChanged.disconnect()
+        
         models = OllamaService.get_available_models_sync()
-        current_selection = self.model_selector.currentText()
-
+        
         # Clear and repopulate the combo box
         self.model_selector.clear()
 
         if models:
             self.model_selector.addItems(models)
 
-            # Try to restore previous selection
+            # Try to restore previous selection from config
             selected_model = self.config.selected_model
             index = self.model_selector.findText(selected_model)
             if index >= 0:
                 self.model_selector.setCurrentIndex(index)
             else:
                 # If saved model is not available, use first available model
-                if models:
-                    self.model_selector.setCurrentIndex(0)
-                    self.config.selected_model = models[0]
+                self.model_selector.setCurrentIndex(0)
+                # Update config to reflect the new selection
+                self.config.selected_model = models[0]
+                # Update agent to use the new model
+                self.agent.update_model(models[0])
         else:
             # No models available from Ollama, add default option
             default_model = self.config.selected_model
             self.model_selector.addItem(default_model)
             self.model_selector.setCurrentIndex(0)
+        
+        # Reconnect the signal after setup is complete
+        self.model_selector.currentTextChanged.connect(self.on_model_changed)
 
     def on_model_changed(self, model_name: str):
         """Handle model selection change."""
-        if model_name:
+        if model_name and model_name != self.config.selected_model:
             self.config.selected_model = model_name
             # Update the agent with the new model
             self.agent.update_model(model_name)
