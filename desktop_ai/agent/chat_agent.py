@@ -10,9 +10,11 @@ from dataclasses import dataclass
 from typing import Optional
 import asyncio
 
-from agents import Agent, Runner, OpenAIChatCompletionsModel, AsyncOpenAI
+from agents import Agent, Runner, OpenAIChatCompletionsModel
+from openai import AsyncOpenAI
+from ..config.config import get_selected_model
 
-_DEFAULT_MODEL = "gpt-oss:20b"
+_DEFAULT_MODEL = "gpt-oss:20B"
 _DEFAULT_BASE_URL = "http://localhost:11434/v1"
 
 
@@ -32,6 +34,25 @@ class ChatAgent:
 
     def __init__(self, config: Optional[ChatAgentConfig] = None):
         self.config = config or ChatAgentConfig()
+        # Use the selected model from config if no specific config is provided
+        if config is None:
+            self.config.model = get_selected_model()
+        
+        self.model = OpenAIChatCompletionsModel(
+            model=self.config.model,
+            openai_client=AsyncOpenAI(
+                base_url=self.config.base_url, api_key=self.config.api_key
+            ),
+        )
+        self.agent = Agent(
+            name="Assistant",
+            instructions=self.config.system_instructions,
+            model=self.model,
+        )
+
+    def update_model(self, model_name: str):
+        """Update the model used by the agent."""
+        self.config.model = model_name
         self.model = OpenAIChatCompletionsModel(
             model=self.config.model,
             openai_client=AsyncOpenAI(

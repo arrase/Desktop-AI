@@ -7,13 +7,16 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QLineEdit,
     QPushButton,
+    QComboBox,
+    QLabel,
 )
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtCore import QThread, pyqtSignal, QObject
 import asyncio
-
 from ..agent import ChatAgent  # type: ignore
 from .components import APP_STYLESHEET, render_user_message, render_assistant_message  # type: ignore
+from ..config.ollama_client import get_available_models_sync
+from ..config.config import get_selected_model, set_selected_model
 
 
 class AgentWorker(QObject):
@@ -50,6 +53,28 @@ class MainWindow(QMainWindow):
 
         layout = QVBoxLayout(central_widget)
 
+        # Model selector at the top
+        model_row = QHBoxLayout()
+        model_label = QLabel("Model:")
+        model_row.addWidget(model_label)
+
+        self.model_selector = QComboBox()
+        self.model_selector.setToolTip("Select the AI model to use")
+        self.model_selector.currentTextChanged.connect(self.on_model_changed)
+        model_row.addWidget(self.model_selector)
+
+        refresh_button = QPushButton("🔄")
+        refresh_button.setToolTip("Refresh model list")
+        refresh_button.setMaximumWidth(40)
+        refresh_button.clicked.connect(self.refresh_models)
+        model_row.addWidget(refresh_button)
+
+        model_row.addStretch()  # Push everything to the left
+        layout.addLayout(model_row)
+
+        # Load available models
+        self.refresh_models()
+
         self.chat_history = QTextEdit()
         self.chat_history.setReadOnly(True)
         self.chat_history.setHtml(
@@ -68,9 +93,6 @@ class MainWindow(QMainWindow):
 
         layout.addLayout(input_row)
 
-        # Internal references to thread / worker
-        self._thread: QThread | None = None
-        self._worker: AgentWorker | None = None
         # Store individual message HTML snippets
         self._messages: list[str] = []
 
@@ -138,3 +160,38 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event: QCloseEvent):  # type: ignore[override]
         self.hide()
         event.ignore()
+
+    # ---------------- Model Management ----------------
+    def refresh_models(self):
+        """Refresh the list of available models from Ollama."""
+        models = get_available_models_sync()
+        current_selection = self.model_selector.currentText()
+        
+        # Clear and repopulate the combo box
+        self.model_selector.clear()
+        
+        if models:
+            self.model_selector.addItems(models)
+            
+            # Try to restore previous selection
+            selected_model = get_selected_model()
+            index = self.model_selector.findText(selected_model)
+            if index >= 0:
+                self.model_selector.setCurrentIndex(index)
+            else:
+                # If saved model is not available, use first available model
+                if models:
+                    self.model_selector.setCurrentIndex(0)
+                    set_selected_model(models[0])
+        else:
+            # No models available from Ollama, add default option
+            default_model = get_selected_model()
+            self.model_selector.addItem(default_model)
+            self.model_selector.setCurrentIndex(0)
+
+    def on_model_changed(self, model_name: str):
+        """Handle model selection change."""
+        if model_name:
+            set_selected_model(model_name)
+            # Update the agent with the new model
+            self.agent.update_model(model_name)
