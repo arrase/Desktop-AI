@@ -90,16 +90,19 @@ class HistoryWindow(QDialog):
         buttons = QHBoxLayout()
         
         self.load_btn = QPushButton("Load")
+        self.load_btn.setObjectName("sendButton")  # Use primary button style
         self.load_btn.setEnabled(False)
         self.load_btn.clicked.connect(self._load_session)
         buttons.addWidget(self.load_btn)
         
         self.delete_btn = QPushButton("Delete")
+        self.delete_btn.setObjectName("resetButton")  # Use secondary button style
         self.delete_btn.setEnabled(False)
         self.delete_btn.clicked.connect(self._delete_session)
         buttons.addWidget(self.delete_btn)
         
         refresh_btn = QPushButton("🔄")
+        refresh_btn.setObjectName("refreshButton")  # Use refresh button style
         refresh_btn.clicked.connect(self._load_sessions)
         buttons.addWidget(refresh_btn)
         
@@ -120,6 +123,7 @@ class HistoryWindow(QDialog):
         close_layout = QHBoxLayout()
         close_layout.addStretch()
         close_btn = QPushButton("Close")
+        close_btn.setObjectName("historyButton")  # Use secondary button style
         close_btn.clicked.connect(self.accept)
         close_layout.addWidget(close_btn)
         right_layout.addLayout(close_layout)

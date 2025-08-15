@@ -226,4 +226,33 @@ QDialog {
     background-color: #1e1e2e;
     color: #cdd6f4;
 }
+
+/* QMessageBox styling */
+QMessageBox {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+}
+
+QMessageBox QPushButton {
+    background-color: #45475a;
+    color: #cdd6f4;
+    border: 2px solid #585b70;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Segoe UI', 'SF Pro Display', system-ui, sans-serif;
+    min-height: 16px;
+    min-width: 60px;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: #585b70;
+    border: 2px solid #6c7086;
+}
+
+QMessageBox QPushButton:pressed {
+    background-color: #6c7086;
+    border: 2px solid #7f849c;
+}
 """
