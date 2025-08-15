@@ -8,6 +8,9 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 import markdown2
 
+# Compile regex pattern once at module level for better performance
+MARKDOWN_PATTERN = re.compile(r'```|`|\*\*|\*|#{1,6}\s|^\s*[-*+]\s|^\s*\d+\.\s', re.MULTILINE)
+
 
 class MarkdownStyler:
     """Handles markdown styling and HTML formatting."""
@@ -23,13 +26,10 @@ class MarkdownStyler:
         'em': 'color: #a6e3a1; font-style: italic;'
     }
     
-    # Regex pattern to detect markdown in a single pass
-    MARKDOWN_PATTERN = re.compile(r'```|`|\*\*|\*|#{1,6}\s|^\s*[-*+]\s|^\s*\d+\.\s', re.MULTILINE)
-    
     @classmethod
     def has_markdown(cls, text: str) -> bool:
         """Efficiently detect if text contains markdown formatting."""
-        return bool(cls.MARKDOWN_PATTERN.search(text))
+        return bool(MARKDOWN_PATTERN.search(text))
     
     @classmethod
     def apply_styles(cls, html_content: str) -> str:
