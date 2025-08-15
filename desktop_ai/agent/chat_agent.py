@@ -63,7 +63,7 @@ class ChatAgent:
         if hasattr(self, 'agent') and self.agent is not None:
             self.agent.model = self.model
         else:
-            # Si no existe el agente, créalo (caso inicial)
+            # If the agent doesn't exist, create it (initial case)
             self.agent = Agent(
                 name="Assistant",
                 instructions=self.config.system_instructions,
