@@ -12,18 +12,16 @@ import asyncio
 
 from agents import Agent, Runner, OpenAIChatCompletionsModel
 from openai import AsyncOpenAI
-from ..config.config import get_selected_model
-
-_DEFAULT_MODEL = "gpt-oss:20b"
-_DEFAULT_BASE_URL = "http://localhost:11434/v1"
+from ..core.config import get_config
+from ..core.constants import DEFAULT_MODEL, OLLAMA_BASE_URL, API_KEY, SYSTEM_INSTRUCTIONS
 
 
 @dataclass
 class ChatAgentConfig:
-    model: str = _DEFAULT_MODEL
-    base_url: str = _DEFAULT_BASE_URL
-    api_key: str = "sk-fake_api_key"  # placeholder; allow override via env later
-    system_instructions: str = "You are a helpful assistant"
+    model: str = DEFAULT_MODEL
+    base_url: str = OLLAMA_BASE_URL
+    api_key: str = API_KEY
+    system_instructions: str = SYSTEM_INSTRUCTIONS
 
 
 class ChatAgent:
@@ -36,8 +34,12 @@ class ChatAgent:
         self.config = config or ChatAgentConfig()
         # Use the selected model from config if no specific config is provided
         if config is None:
-            self.config.model = get_selected_model()
+            self.config.model = get_config().selected_model
 
+        self._create_agent()
+
+    def _create_agent(self):
+        """Create the agent with current configuration."""
         self.model = OpenAIChatCompletionsModel(
             model=self.config.model,
             openai_client=AsyncOpenAI(
@@ -51,24 +53,9 @@ class ChatAgent:
         )
 
     def update_model(self, model_name: str):
-        """Updates the model used by the agent without recreating the Agent instance."""
+        """Updates the model used by the agent."""
         self.config.model = model_name
-        self.model = OpenAIChatCompletionsModel(
-            model=self.config.model,
-            openai_client=AsyncOpenAI(
-                base_url=self.config.base_url, api_key=self.config.api_key
-            ),
-        )
-        # Only update the model reference in the existing agent
-        if self.agent is not None:
-            self.agent.model = self.model
-        else:
-            # If the agent doesn't exist, create it (initial case)
-            self.agent = Agent(
-                name="Assistant",
-                instructions=self.config.system_instructions,
-                model=self.model,
-            )
+        self._create_agent()
 
     async def get_response(self, prompt: str) -> str:
         """Return assistant reply for prompt.
