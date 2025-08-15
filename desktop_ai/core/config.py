@@ -3,11 +3,16 @@ import json
 import threading
 from pathlib import Path
 from typing import Dict, Any
-from .constants import DEFAULT_MODEL, CONFIG_DIR_NAME, CONFIG_FILE_NAME
+from .constants import DEFAULT_MODEL, CONFIG_DIR_NAME, CONFIG_FILE_NAME, SYSTEM_INSTRUCTIONS
 
 
 class Config:
     """Centralized configuration management."""
+
+    _DEFAULT_CONFIG = {
+        "model": DEFAULT_MODEL,
+        "system_prompt": SYSTEM_INSTRUCTIONS
+    }
     
     def __init__(self):
         self._config_dir = Path.home() / CONFIG_DIR_NAME
@@ -26,15 +31,17 @@ class Config:
             if self._config_file.exists():
                 with open(self._config_file, 'r', encoding='utf-8') as f:
                     config = json.load(f)
-                    # Ensure we have a model key
+                    # Ensure essential keys are present
                     if 'model' not in config:
-                        config['model'] = DEFAULT_MODEL
+                        config['model'] = self._DEFAULT_CONFIG['model']
+                    if 'system_prompt' not in config:
+                        config['system_prompt'] = self._DEFAULT_CONFIG['system_prompt']
                     return config
             else:
-                return {"model": DEFAULT_MODEL}
+                return self._DEFAULT_CONFIG.copy()
         except (json.JSONDecodeError, IOError):
             # If config file is corrupted or can't be read, return defaults
-            return {"model": DEFAULT_MODEL}
+            return self._DEFAULT_CONFIG.copy()
     
     def save(self) -> None:
         """Save configuration to file."""
@@ -55,6 +62,17 @@ class Config:
     def selected_model(self, model: str) -> None:
         """Set the selected model in config."""
         self._config_data['model'] = model
+        self.save()
+
+    @property
+    def system_prompt(self) -> str:
+        """Get the currently configured system prompt."""
+        return self._config_data.get('system_prompt', SYSTEM_INSTRUCTIONS)
+
+    @system_prompt.setter
+    def system_prompt(self, prompt: str) -> None:
+        """Set the system prompt in config."""
+        self._config_data['system_prompt'] = prompt
         self.save()
     
     def get(self, key: str, default=None):
