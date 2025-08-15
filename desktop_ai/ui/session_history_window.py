@@ -47,7 +47,7 @@ class SessionListItem(QWidget):
         info_layout = QHBoxLayout()
         info_layout.setContentsMargins(0, 0, 0, 0)
         
-        message_count_label = QLabel(f"{self.session_info.message_count} mensajes")
+        message_count_label = QLabel(f"{self.session_info.message_count} messages")
         message_count_label.setStyleSheet("color: #8FBCBB; font-size: 9px;")
         info_layout.addWidget(message_count_label)
         
@@ -70,7 +70,7 @@ class SessionHistoryWindow(QDialog):
         self.session_service = SessionService()
         self.current_session_id = None
         
-        self.setWindowTitle("Historial de Conversaciones")
+        self.setWindowTitle("Conversation History")
         self.setMinimumSize(800, 600)
         self.resize(1000, 700)
         self.setStyleSheet(APP_STYLESHEET)
@@ -91,7 +91,7 @@ class SessionHistoryWindow(QDialog):
         left_layout = QVBoxLayout(left_panel)
         
         # List header
-        list_header = QLabel("Conversaciones Recientes")
+        list_header = QLabel("Recent Conversations")
         list_header.setStyleSheet("font-weight: bold; font-size: 14px; padding: 8px;")
         left_layout.addWidget(list_header)
         
@@ -105,18 +105,18 @@ class SessionHistoryWindow(QDialog):
         # Buttons for session management
         button_layout = QHBoxLayout()
         
-        self.load_button = QPushButton("Cargar Conversación")
+        self.load_button = QPushButton("Load Conversation")
         self.load_button.setEnabled(False)
         self.load_button.clicked.connect(self._on_load_session)
         button_layout.addWidget(self.load_button)
         
-        self.delete_button = QPushButton("Eliminar")
+        self.delete_button = QPushButton("Delete")
         self.delete_button.setEnabled(False)
         self.delete_button.clicked.connect(self._on_delete_session)
         button_layout.addWidget(self.delete_button)
         
         self.refresh_button = QPushButton("🔄")
-        self.refresh_button.setToolTip("Actualizar lista")
+        self.refresh_button.setToolTip("Refresh List")
         self.refresh_button.clicked.connect(self._load_sessions)
         button_layout.addWidget(self.refresh_button)
         
@@ -127,7 +127,7 @@ class SessionHistoryWindow(QDialog):
         right_layout = QVBoxLayout(right_panel)
         
         # Preview header
-        self.preview_header = QLabel("Vista Previa")
+        self.preview_header = QLabel("Preview")
         self.preview_header.setStyleSheet("font-weight: bold; font-size: 14px; padding: 8px;")
         right_layout.addWidget(self.preview_header)
         
@@ -141,7 +141,7 @@ class SessionHistoryWindow(QDialog):
         close_layout = QHBoxLayout()
         close_layout.addStretch()
         
-        close_button = QPushButton("Cerrar")
+        close_button = QPushButton("Close")
         close_button.clicked.connect(self.accept)
         close_layout.addWidget(close_button)
         
@@ -171,8 +171,8 @@ class SessionHistoryWindow(QDialog):
         
         # Clear preview if no sessions
         if not sessions:
-            self.preview_area.setHtml("<p style='color: #8FBCBB; text-align: center; margin-top: 50px;'>No hay conversaciones guardadas</p>")
-            self.preview_header.setText("Vista Previa")
+            self.preview_area.setHtml("<p style='color: #8FBCBB; text-align: center; margin-top: 50px;'>No saved conversations</p>")
+            self.preview_header.setText("Preview")
 
     def _on_session_selected(self, item: QListWidgetItem):
         """Handle session selection."""
@@ -191,7 +191,7 @@ class SessionHistoryWindow(QDialog):
         messages = self.session_service.get_session_messages(session_id)
         
         if not messages:
-            self.preview_area.setHtml("<p style='color: #BF616A;'>Error al cargar los mensajes de esta conversación</p>")
+            self.preview_area.setHtml("<p style='color: #BF616A;'>Error loading messages for this conversation</p>")
             return
         
         # Update header with session info
@@ -205,7 +205,7 @@ class SessionHistoryWindow(QDialog):
                     break
         
         if session_info:
-            self.preview_header.setText(f"Vista Previa - {session_info.get_relative_time()}")
+            self.preview_header.setText(f"Preview - {session_info.get_relative_time()}")
         
         # Render messages
         html_messages = []
@@ -248,8 +248,8 @@ class SessionHistoryWindow(QDialog):
         # Show confirmation dialog
         reply = QMessageBox.question(
             self,
-            "Confirmar Eliminación",
-            "¿Estás seguro de que quieres eliminar esta conversación?\n\nEsta acción no se puede deshacer.",
+            "Confirm Deletion",
+            "Are you sure you want to delete this conversation?\n\nThis action cannot be undone.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No
         )
@@ -263,11 +263,11 @@ class SessionHistoryWindow(QDialog):
                 self.current_session_id = None
                 self.load_button.setEnabled(False)
                 self.delete_button.setEnabled(False)
-                self.preview_area.setHtml("<p style='color: #8FBCBB; text-align: center; margin-top: 50px;'>Conversación eliminada</p>")
-                self.preview_header.setText("Vista Previa")
+                self.preview_area.setHtml("<p style='color: #8FBCBB; text-align: center; margin-top: 50px;'>Conversation deleted</p>")
+                self.preview_header.setText("Preview")
             else:
                 QMessageBox.warning(
                     self,
                     "Error",
-                    "No se pudo eliminar la conversación. Inténtalo de nuevo."
+                    "Could not delete the conversation. Please try again."
                 )

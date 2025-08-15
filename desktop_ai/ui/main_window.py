@@ -73,17 +73,12 @@ class MainWindow(QMainWindow):
         reset_button.setAccessibleName("Reset conversation")
         reset_button.clicked.connect(self._on_reset_clicked)
         model_row.addWidget(reset_button)
-
+        
         history_button = QPushButton("📋")
-        history_button.setToolTip("Ver historial de conversaciones")
-        history_button.setAccessibleName("Ver historial")
+        history_button.setToolTip("View conversation history")
+        history_button.setAccessibleName("View history")
         history_button.clicked.connect(self._on_history_clicked)
         model_row.addWidget(history_button)
-
-        # Session status indicator
-        self.session_status_label = QLabel("Nueva conversación")
-        self.session_status_label.setStyleSheet("color: #8FBCBB; font-size: 11px; padding: 4px;")
-        model_row.addWidget(self.session_status_label)
 
         model_row.addStretch()  # Push everything to the left
         layout.addLayout(model_row)
@@ -173,7 +168,6 @@ class MainWindow(QMainWindow):
         self._clear_chat_history()
         self.agent.reset()
         self.current_session_id = None
-        self.session_status_label.setText("Nueva conversación")
 
     def _on_history_clicked(self):
         """Handle history button click."""
@@ -211,9 +205,6 @@ class MainWindow(QMainWindow):
                     else:
                         text_content = str(content)
                     self._append_chat_html(render_assistant_message(text_content))
-            
-            # Update session status
-            self.session_status_label.setText(f"Conversación cargada ({session_id[:8]}...)")
             
         except Exception as e:
             self._append_chat_html(render_assistant_message(f"Error cargando la sesión: {e}"))
@@ -266,4 +257,3 @@ class MainWindow(QMainWindow):
             self.agent.update_model(model_name)
             self._clear_chat_history()
             self.current_session_id = None
-            self.session_status_label.setText("Nueva conversación")
