@@ -107,7 +107,8 @@ class HistoryWindow(QDialog):
         self.delete_btn.clicked.connect(self._delete_session)
         buttons.addWidget(self.delete_btn)
         
-        refresh_btn = QPushButton("🔄")
+        refresh_btn = QPushButton("↻ Refresh")
+        refresh_btn.setToolTip("Refresh conversation list")
         refresh_btn.setObjectName("refreshButton")  # Use refresh button style
         refresh_btn.clicked.connect(self._load_sessions)
         buttons.addWidget(refresh_btn)
