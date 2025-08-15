@@ -46,6 +46,8 @@ class ThreadManager:
         try:
             return self._thread.isRunning()
         except RuntimeError:
+            # This can occur if the underlying QThread C++ object has already been deleted,
+            # for example, if the thread has finished and been cleaned up.
             self._thread = None
             return False
     
