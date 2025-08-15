@@ -36,30 +36,41 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
+        layout.setSpacing(16)
+        layout.setContentsMargins(16, 16, 16, 16)
 
         # Top controls
         controls = QHBoxLayout()
+        controls.setSpacing(12)
         
         # Model selector
-        controls.addWidget(QLabel("Model:"))
+        model_label = QLabel("Model:")
+        model_label.setStyleSheet("margin-right: 8px;")
+        controls.addWidget(model_label)
         self.model_selector = QComboBox()
         self.model_selector.setToolTip("Select AI model")
         self.model_selector.currentTextChanged.connect(self._on_model_changed)
         controls.addWidget(self.model_selector)
 
+        # Add spacing
+        controls.addSpacing(20)
+
         # Buttons
-        refresh_btn = QPushButton("🔄")
-        refresh_btn.setToolTip("Refresh models")
+        refresh_btn = QPushButton("↻ Refresh")
+        refresh_btn.setToolTip("Refresh available models")
+        refresh_btn.setObjectName("refreshButton")
         refresh_btn.clicked.connect(self._refresh_models)
         controls.addWidget(refresh_btn)
 
-        reset_btn = QPushButton("🗑️")
-        reset_btn.setToolTip("Reset conversation")
+        reset_btn = QPushButton("✕ Reset")
+        reset_btn.setToolTip("Start a new conversation")
+        reset_btn.setObjectName("resetButton")
         reset_btn.clicked.connect(self._reset_chat)
         controls.addWidget(reset_btn)
         
-        history_btn = QPushButton("📋")
-        history_btn.setToolTip("View history")
+        history_btn = QPushButton("≡ History")
+        history_btn.setToolTip("View conversation history")
+        history_btn.setObjectName("historyButton")
         history_btn.clicked.connect(self._show_history)
         controls.addWidget(history_btn)
 
@@ -72,13 +83,16 @@ class MainWindow(QMainWindow):
 
         # Input area
         input_layout = QHBoxLayout()
+        input_layout.setSpacing(12)
+        input_layout.setContentsMargins(0, 8, 0, 0)
         
         self.input_box = QLineEdit()
-        self.input_box.setPlaceholderText("Type a message...")
+        self.input_box.setPlaceholderText("Type your message here...")
         self.input_box.returnPressed.connect(self._send_message)
         input_layout.addWidget(self.input_box, stretch=1)
 
         self.send_button = QPushButton("Send")
+        self.send_button.setObjectName("sendButton")
         self.send_button.clicked.connect(self._send_message)
         input_layout.addWidget(self.send_button)
 

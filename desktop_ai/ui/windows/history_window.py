@@ -2,13 +2,14 @@
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QListWidget, 
     QListWidgetItem, QPushButton, QLabel, QMessageBox,
-    QWidget, QSplitter, QTextEdit
+    QWidget, QSplitter
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
 from ...services import SessionService, SessionInfo
-from ..styles import STYLESHEET, render_user_message, render_assistant_message
+from ..styles import STYLESHEET
+from ..widgets import ChatWidget
 
 
 class SessionListItem(QWidget):
@@ -111,8 +112,7 @@ class HistoryWindow(QDialog):
         self.preview_header = QLabel("Preview")
         right_layout.addWidget(self.preview_header)
         
-        self.preview_area = QTextEdit()
-        self.preview_area.setReadOnly(True)
+        self.preview_area = ChatWidget()
         self.preview_area.setMinimumWidth(400)
         right_layout.addWidget(self.preview_area)
         
@@ -145,10 +145,8 @@ class HistoryWindow(QDialog):
             self.session_list.setItemWidget(item, widget)
         
         if not sessions:
-            self.preview_area.setHtml(
-                "<p style='color: #8FBCBB; text-align: center; margin-top: 50px;'>"
-                "No saved conversations</p>"
-            )
+            self.preview_area.clear_chat()
+            # No need to show a message as the empty chat area is clear enough
 
     def _on_session_selected(self, item: QListWidgetItem):
         """Handle session selection."""
@@ -165,9 +163,7 @@ class HistoryWindow(QDialog):
         messages = self.session_service.get_messages(session_id)
         
         if not messages:
-            self.preview_area.setHtml(
-                "<p style='color: #BF616A;'>Error loading messages</p>"
-            )
+            self.preview_area.clear_chat()
             return
         
         # Update header
@@ -181,14 +177,16 @@ class HistoryWindow(QDialog):
                     )
                     break
         
-        # Render messages
-        html_messages = []
+        # Clear previous messages
+        self.preview_area.clear_chat()
+        
+        # Add messages to the chat widget
         for message in messages:
             role = message.get('role', '')
             content = message.get('content', '')
             
             if role == 'user':
-                html_messages.append(render_user_message(content))
+                self.preview_area.add_user_message(content)
             elif role == 'assistant':
                 # Handle complex content structure
                 if isinstance(content, list) and len(content) > 0:
@@ -198,15 +196,7 @@ class HistoryWindow(QDialog):
                         text_content = str(content)
                 else:
                     text_content = str(content)
-                html_messages.append(render_assistant_message(text_content))
-        
-        # Display
-        html_doc = (
-            "<html><body><div id='chat-root'>" +
-            "".join(html_messages) + 
-            "</div></body></html>"
-        )
-        self.preview_area.setHtml(html_doc)
+                self.preview_area.add_assistant_message(text_content)
 
     def _load_session(self):
         """Load selected session."""
@@ -235,10 +225,7 @@ class HistoryWindow(QDialog):
                 self.current_session_id = None
                 self.load_btn.setEnabled(False)
                 self.delete_btn.setEnabled(False)
-                self.preview_area.setHtml(
-                    "<p style='color: #8FBCBB; text-align: center; margin-top: 50px;'>"
-                    "Conversation deleted</p>"
-                )
+                self.preview_area.clear_chat()
                 self.preview_header.setText("Preview")
             else:
                 QMessageBox.warning(self, "Error", "Could not delete conversation.")
