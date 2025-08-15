@@ -1,7 +1,7 @@
 """Simple configuration management."""
 import json
-from typing import Dict, Any
-from .constants import CONFIG_FILE, DEFAULT_MODEL, SYSTEM_INSTRUCTIONS
+from typing import Dict, Any, Optional
+from .constants import CONFIG_FILE, SYSTEM_INSTRUCTIONS
 
 
 class Config:
@@ -13,7 +13,7 @@ class Config:
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from file."""
         defaults = {
-            "model": DEFAULT_MODEL,
+            "model": None,
             "system_prompt": SYSTEM_INSTRUCTIONS
         }
         
@@ -36,8 +36,8 @@ class Config:
             pass  # Silently ignore save errors
     
     @property
-    def model(self) -> str:
-        return self._config.get('model', DEFAULT_MODEL)
+    def model(self) -> Optional[str]:
+        return self._config.get('model')
     
     @model.setter
     def model(self, value: str) -> None:
