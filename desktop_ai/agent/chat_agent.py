@@ -59,7 +59,7 @@ class ChatAgent:
                 base_url=self.config.base_url, api_key=self.config.api_key
             ),
         )
-        # Actualiza solo la referencia al modelo en el agente existente
+        # Only update the model reference in the existing agent
         if self.agent is not None:
             self.agent.model = self.model
         else:
