@@ -7,7 +7,8 @@ setup(
     install_requires=[
         "PyQt6",
         "openai-agents",
-        "markdown2"
+        "markdown2",
+        "ollama"
     ],
     entry_points={
         "console_scripts": [

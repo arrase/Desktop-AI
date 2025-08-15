@@ -17,6 +17,11 @@ APP_STYLESHEET = dedent(
     QPushButton { background-color: #5E81AC; color: #ECEFF4; border: none; border-radius: 5px; padding: 8px 16px; font-size: 14px; font-weight: bold; }
     QPushButton:hover { background-color: #81A1C1; }
     QPushButton:pressed { background-color: #88C0D0; }
+    QComboBox { background-color: #3B4252; color: #ECEFF4; border: 1px solid #4C566A; border-radius: 5px; padding: 6px 8px; font-size: 14px; min-width: 200px; }
+    QComboBox::drop-down { border: none; }
+    QComboBox::down-arrow { image: none; border: none; }
+    QComboBox QAbstractItemView { background-color: #3B4252; color: #ECEFF4; border: 1px solid #4C566A; selection-background-color: #5E81AC; }
+    QLabel { color: #ECEFF4; font-size: 14px; font-weight: bold; }
     QScrollBar:vertical { border: none; background: #3B4252; width: 12px; }
     QScrollBar::handle:vertical { background: #5E81AC; min-height: 20px; border-radius: 6px; }
     QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
