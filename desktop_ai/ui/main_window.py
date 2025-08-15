@@ -68,6 +68,7 @@ class MainWindow(QMainWindow):
 
         reset_button = QPushButton("🗑️")
         reset_button.setToolTip("Reset conversation")
+        reset_button.setAccessibleName("Reset conversation")
         reset_button.setMaximumWidth(40)
         reset_button.clicked.connect(self._on_reset_clicked)
         model_row.addWidget(reset_button)
