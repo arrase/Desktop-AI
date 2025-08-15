@@ -14,7 +14,7 @@ from agents import Agent, Runner, OpenAIChatCompletionsModel
 from openai import AsyncOpenAI
 from ..config.config import get_selected_model
 
-_DEFAULT_MODEL = "gpt-oss:20B"
+_DEFAULT_MODEL = "gpt-oss:20b"
 _DEFAULT_BASE_URL = "http://localhost:11434/v1"
 
 
