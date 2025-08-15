@@ -10,23 +10,30 @@ from .core.constants import LOG_FILE
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
 
-def setup_logging():
+def setup_logging(daemon_mode=False):
     """Setup logging for daemon mode."""
+    # Configure root logger
     logging.basicConfig(
         filename=LOG_FILE,
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-
-    # Also log to console if not in daemon mode
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console_handler.setFormatter(formatter)
-
-    root_logger = logging.getLogger()
-    root_logger.addHandler(console_handler)
+    
+    # Silence httpx and other noisy loggers
+    logging.getLogger('httpx').setLevel(logging.WARNING)
+    logging.getLogger('httpcore').setLevel(logging.WARNING)
+    logging.getLogger('ollama').setLevel(logging.WARNING)
+    
+    # Only add console handler if not in daemon mode
+    if not daemon_mode:
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(formatter)
+        
+        root_logger = logging.getLogger()
+        root_logger.addHandler(console_handler)
 
 
 def daemonize():
@@ -75,40 +82,42 @@ def daemonize():
 
 def main():
     """Main entry point with error handling."""
-    # Setup logging first
-    setup_logging()
+    # Setup logging first (without console output initially)
+    setup_logging(daemon_mode=False)
 
-    # Check if we should run as daemon
-    run_as_daemon = True
-
-    # Don't daemonize if running in certain environments or with specific arguments
-    if (os.getenv('DISPLAY') is None or
-        '--no-daemon' in sys.argv or
-            '--debug' in sys.argv):
-        run_as_daemon = False
-
-    if run_as_daemon:
-        daemonize()
-
-    app = QApplication(sys.argv)
+    # Check if graphical environment is available
+    if os.getenv('DISPLAY') is None:
+        error_msg = "No graphical environment detected. Desktop AI requires a GUI environment."
+        logging.error(error_msg)
+        print(error_msg, file=sys.stderr)
+        sys.exit(1)
 
     try:
+        # Check for models before daemonizing - do this without QApplication
         models = OllamaService.get_models()
         if not models:
-            error_msg = "No Ollama models were found. Please install a model to continue."
-            logging.error(error_msg)
-            if not run_as_daemon:
-                QMessageBox.critical(
-                    None,
-                    "No Ollama Models Found",
-                    error_msg,
-                )
+            # Create temporary QApplication just to show the error message
+            temp_app = QApplication(sys.argv)
+            QMessageBox.critical(
+                None,
+                "No Ollama Models Found",
+                "No Ollama models were found. Please install a model to continue.",
+            )
             sys.exit(1)
 
         if not config.model:
             config.model = models[0]
             logging.info(f"Using default model: {config.model}")
 
+        # Now that we've verified everything, daemonize
+        daemonize()
+
+        # Reconfigure logging for daemon mode (file only)
+        setup_logging(daemon_mode=True)
+
+        # Create QApplication in the daemon process
+        app = QApplication(sys.argv)
+        
         desktop_ai = DesktopAI(app)
 
         # Handle signals gracefully
@@ -127,12 +136,17 @@ def main():
     except Exception as e:
         error_msg = f"An unexpected error occurred: {str(e)}"
         logging.error(error_msg, exc_info=True)
-        if not run_as_daemon:
+        # Only try to show QMessageBox if we haven't daemonized yet
+        try:
+            temp_app = QApplication(sys.argv)
             QMessageBox.critical(
                 None,
                 "Application Error",
                 "An unexpected error occurred. Please check the logs.",
             )
+        except:
+            # If we can't show the dialog (probably after daemonize), just log it
+            pass
         sys.exit(1)
 
 
