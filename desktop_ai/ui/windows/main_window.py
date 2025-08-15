@@ -43,7 +43,7 @@ class MainWindow(QMainWindow):
         controls = QHBoxLayout()
         controls.setSpacing(12)
         
-        # Model selector group (integrado con refresh)
+        # Model selector group (integrated with refresh)
         model_group = QHBoxLayout()
         model_group.setSpacing(0)  # Sin espacio entre elementos
         model_group.setContentsMargins(0, 0, 0, 0)
