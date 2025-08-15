@@ -31,9 +31,9 @@ class SessionInfo:
             # Fallback to timestamp if no messages
             try:
                 dt = datetime.fromisoformat(self.created_at.replace(' ', 'T'))
-                return f"Conversación {dt.strftime('%d/%m %H:%M')}"
+                return f"Conversation {dt.strftime('%d/%m %H:%M')}"
             except:
-                return f"Conversación {self.session_id[:8]}"
+                return f"Conversation {self.session_id[:8]}"
 
     def get_relative_time(self) -> str:
         """Get a relative time description for the session."""
@@ -43,17 +43,17 @@ class SessionInfo:
             diff = now - dt
             
             if diff.days > 0:
-                return f"{diff.days} día{'s' if diff.days != 1 else ''} atrás"
+                return f"{diff.days} day{'s' if diff.days != 1 else ''} ago"
             elif diff.seconds > 3600:
                 hours = diff.seconds // 3600
-                return f"{hours} hora{'s' if hours != 1 else ''} atrás"
+                return f"{hours} hour{'s' if hours != 1 else ''} ago"
             elif diff.seconds > 60:
                 minutes = diff.seconds // 60
-                return f"{minutes} minuto{'s' if minutes != 1 else ''} atrás"
+                return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
             else:
-                return "Hace un momento"
+                return "Just now"
         except:
-            return "Fecha desconocida"
+            return "Unknown date"
 
 
 class SessionService:
