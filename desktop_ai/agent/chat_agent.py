@@ -60,7 +60,7 @@ class ChatAgent:
             ),
         )
         # Actualiza solo la referencia al modelo en el agente existente
-        if hasattr(self, 'agent') and self.agent is not None:
+        if self.agent is not None:
             self.agent.model = self.model
         else:
             # If the agent doesn't exist, create it (initial case)
