@@ -9,6 +9,13 @@ from .core import config
 from .core.constants import LOG_FILE
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
+# Exit codes
+EXIT_SUCCESS = 0
+EXIT_ENV_ERROR = 1
+EXIT_MODEL_ERROR = 2
+EXIT_CONNECTION_ERROR = 3
+EXIT_GENERAL_ERROR = 4
+
 
 def setup_logging():
     """Setup logging configuration."""
@@ -54,7 +61,7 @@ def daemonize():
     sys.stdout.flush()
     sys.stderr.flush()
 
-    null_fd = os.open('/dev/null', os.O_RDWR)
+    null_fd = os.open(os.devnull, os.O_RDWR)
     for fd in (sys.stdin.fileno(), sys.stdout.fileno(), sys.stderr.fileno()):
         os.dup2(null_fd, fd)
     os.close(null_fd)
@@ -64,17 +71,13 @@ def daemonize():
 
 def validate_requirements():
     """Validate system requirements before starting the application."""
-    # Check graphical environment
-    if not os.getenv('DISPLAY'):
-        raise EnvironmentError(
-            "No graphical environment detected. Desktop AI requires a GUI environment.")
 
     # Check for Ollama models
     try:
         models = OllamaService.get_models()
     except Exception as e:
         raise ConnectionError(f"Failed to connect to Ollama service: {e}")
-    
+
     if not models:
         raise ValueError(
             "No Ollama models were found. Please install a model to continue.")
@@ -84,7 +87,8 @@ def validate_requirements():
         config.model = models[0]
         logging.info(f"Using default model: {config.model}")
     elif config.model not in models:
-        logging.warning(f"Configured model '{config.model}' not found, using '{models[0]}'")
+        logging.warning(
+            f"Configured model '{config.model}' not found, using '{models[0]}'")
         config.model = models[0]
 
 
@@ -108,14 +112,6 @@ def setup_signal_handlers(app):
 
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
-
-
-# Exit codes
-EXIT_SUCCESS = 0
-EXIT_ENV_ERROR = 1
-EXIT_MODEL_ERROR = 2
-EXIT_CONNECTION_ERROR = 3
-EXIT_GENERAL_ERROR = 4
 
 
 def main():
@@ -159,8 +155,8 @@ def main():
     except Exception as e:
         error_msg = f"Unexpected error: {e}"
         logging.error(error_msg, exc_info=True)
-        show_error_dialog("Application Error", 
-                         "An unexpected error occurred. Please check the logs.")
+        show_error_dialog("Application Error",
+                          "An unexpected error occurred. Please check the logs.")
         sys.exit(EXIT_GENERAL_ERROR)
 
 
