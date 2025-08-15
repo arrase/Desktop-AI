@@ -23,16 +23,18 @@ class SessionListItem(QWidget):
     def _setup_ui(self):
         """Setup UI."""
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 4, 8, 4)
-        layout.setSpacing(2)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(4)
 
         # Title
         title = QLabel(self.session_info.get_display_name())
         title_font = QFont()
         title_font.setBold(True)
-        title_font.setPointSize(10)
+        title_font.setPointSize(11)
         title.setFont(title_font)
         title.setWordWrap(True)
+        title.setMaximumHeight(40)  # Allow for 2 lines max
+        title.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(title)
 
         # Info row
@@ -40,16 +42,20 @@ class SessionListItem(QWidget):
         info_layout.setContentsMargins(0, 0, 0, 0)
         
         count_label = QLabel(f"{self.session_info.message_count} messages")
-        count_label.setStyleSheet("color: #8FBCBB; font-size: 9px;")
+        count_label.setStyleSheet("color: #8FBCBB; font-size: 10px;")
         info_layout.addWidget(count_label)
         
         info_layout.addStretch()
         
         time_label = QLabel(self.session_info.get_relative_time())
-        time_label.setStyleSheet("color: #8FBCBB; font-size: 9px;")
+        time_label.setStyleSheet("color: #8FBCBB; font-size: 10px;")
         info_layout.addWidget(time_label)
         
         layout.addLayout(info_layout)
+        
+        # Set minimum height for the widget
+        self.setMinimumHeight(65)
+        self.setMaximumHeight(75)
 
 
 class HistoryWindow(QDialog):
@@ -143,7 +149,10 @@ class HistoryWindow(QDialog):
             item.setData(Qt.ItemDataRole.UserRole, session.session_id)
             
             widget = SessionListItem(session)
-            item.setSizeHint(widget.sizeHint())
+            # Ensure the widget is properly sized
+            widget.adjustSize()
+            # Set a fixed height for all items
+            item.setSizeHint(widget.size())
             
             self.session_list.addItem(item)
             self.session_list.setItemWidget(item, widget)

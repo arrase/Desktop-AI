@@ -210,7 +210,8 @@ QListWidget::item {
     border: 1px solid #313244;
     border-radius: 8px;
     margin: 2px;
-    padding: 8px;
+    padding: 0px;  /* Remove padding to let the widget handle it */
+    min-height: 65px;  /* Ensure minimum height for proper text display */
 }
 
 QListWidget::item:selected {
