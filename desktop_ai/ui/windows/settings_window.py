@@ -39,10 +39,12 @@ class SettingsWindow(QDialog):
         buttons.addStretch()
 
         save_btn = QPushButton("Save")
+        save_btn.setObjectName("sendButton")  # Use primary button style
         save_btn.clicked.connect(self._save_settings)
         buttons.addWidget(save_btn)
 
         cancel_btn = QPushButton("Cancel")
+        cancel_btn.setObjectName("historyButton")  # Use secondary button style
         cancel_btn.clicked.connect(self.reject)
         buttons.addWidget(cancel_btn)
 

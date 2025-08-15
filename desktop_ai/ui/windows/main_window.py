@@ -36,30 +36,57 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
+        layout.setSpacing(16)
+        layout.setContentsMargins(16, 16, 16, 16)
 
         # Top controls
         controls = QHBoxLayout()
+        controls.setSpacing(12)
         
-        # Model selector
-        controls.addWidget(QLabel("Model:"))
+        # Model selector group (integrated with refresh)
+        model_group = QHBoxLayout()
+        model_group.setSpacing(0)  # No space between elements
+        model_group.setContentsMargins(0, 0, 0, 0)
+        
+        model_label = QLabel("Model:")
+        model_label.setStyleSheet("margin-right: 8px;")
+        controls.addWidget(model_label)
+        
+        # Container widget for the model selector group
+        model_container = QWidget()
+        model_container.setObjectName("modelContainer")
+        model_container.setLayout(model_group)
+        
         self.model_selector = QComboBox()
         self.model_selector.setToolTip("Select AI model")
+        self.model_selector.setObjectName("modelSelector")
         self.model_selector.currentTextChanged.connect(self._on_model_changed)
-        controls.addWidget(self.model_selector)
-
-        # Buttons
-        refresh_btn = QPushButton("🔄")
-        refresh_btn.setToolTip("Refresh models")
+        model_group.addWidget(self.model_selector)
+        
+        # Integrated refresh button
+        refresh_btn = QPushButton("↻")
+        refresh_btn.setToolTip("Refresh available models")
+        refresh_btn.setObjectName("refreshButtonIntegrated")
+        refresh_btn.setFixedWidth(36)  # Smaller button
         refresh_btn.clicked.connect(self._refresh_models)
-        controls.addWidget(refresh_btn)
+        model_group.addWidget(refresh_btn)
+        
+        controls.addWidget(model_container)
 
-        reset_btn = QPushButton("🗑️")
-        reset_btn.setToolTip("Reset conversation")
+        # Add spacing
+        controls.addSpacing(20)
+
+        # Other buttons
+
+        reset_btn = QPushButton("✕ Reset")
+        reset_btn.setToolTip("Start a new conversation")
+        reset_btn.setObjectName("resetButton")
         reset_btn.clicked.connect(self._reset_chat)
         controls.addWidget(reset_btn)
         
-        history_btn = QPushButton("📋")
-        history_btn.setToolTip("View history")
+        history_btn = QPushButton("≡ History")
+        history_btn.setToolTip("View conversation history")
+        history_btn.setObjectName("historyButton")
         history_btn.clicked.connect(self._show_history)
         controls.addWidget(history_btn)
 
@@ -72,13 +99,16 @@ class MainWindow(QMainWindow):
 
         # Input area
         input_layout = QHBoxLayout()
+        input_layout.setSpacing(12)
+        input_layout.setContentsMargins(0, 8, 0, 0)
         
         self.input_box = QLineEdit()
-        self.input_box.setPlaceholderText("Type a message...")
+        self.input_box.setPlaceholderText("Type your message here...")
         self.input_box.returnPressed.connect(self._send_message)
         input_layout.addWidget(self.input_box, stretch=1)
 
         self.send_button = QPushButton("Send")
+        self.send_button.setObjectName("sendButton")
         self.send_button.clicked.connect(self._send_message)
         input_layout.addWidget(self.send_button)
 

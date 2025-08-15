@@ -2,13 +2,14 @@
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QListWidget, 
     QListWidgetItem, QPushButton, QLabel, QMessageBox,
-    QWidget, QSplitter, QTextEdit
+    QWidget, QSplitter
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
 from ...services import SessionService, SessionInfo
-from ..styles import STYLESHEET, render_user_message, render_assistant_message
+from ..styles import STYLESHEET
+from ..widgets import ChatWidget
 
 
 class SessionListItem(QWidget):
@@ -22,16 +23,18 @@ class SessionListItem(QWidget):
     def _setup_ui(self):
         """Setup UI."""
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 4, 8, 4)
-        layout.setSpacing(2)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(4)
 
         # Title
         title = QLabel(self.session_info.get_display_name())
         title_font = QFont()
         title_font.setBold(True)
-        title_font.setPointSize(10)
+        title_font.setPointSize(11)
         title.setFont(title_font)
         title.setWordWrap(True)
+        title.setMaximumHeight(40)  # Allow for 2 lines max
+        title.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(title)
 
         # Info row
@@ -39,16 +42,20 @@ class SessionListItem(QWidget):
         info_layout.setContentsMargins(0, 0, 0, 0)
         
         count_label = QLabel(f"{self.session_info.message_count} messages")
-        count_label.setStyleSheet("color: #8FBCBB; font-size: 9px;")
+        count_label.setStyleSheet("color: #8FBCBB; font-size: 10px;")
         info_layout.addWidget(count_label)
         
         info_layout.addStretch()
         
         time_label = QLabel(self.session_info.get_relative_time())
-        time_label.setStyleSheet("color: #8FBCBB; font-size: 9px;")
+        time_label.setStyleSheet("color: #8FBCBB; font-size: 10px;")
         info_layout.addWidget(time_label)
         
         layout.addLayout(info_layout)
+        
+        # Set minimum height for the widget
+        self.setMinimumHeight(65)
+        self.setMaximumHeight(75)
 
 
 class HistoryWindow(QDialog):
@@ -89,16 +96,20 @@ class HistoryWindow(QDialog):
         buttons = QHBoxLayout()
         
         self.load_btn = QPushButton("Load")
+        self.load_btn.setObjectName("sendButton")  # Use primary button style
         self.load_btn.setEnabled(False)
         self.load_btn.clicked.connect(self._load_session)
         buttons.addWidget(self.load_btn)
         
         self.delete_btn = QPushButton("Delete")
+        self.delete_btn.setObjectName("resetButton")  # Use secondary button style
         self.delete_btn.setEnabled(False)
         self.delete_btn.clicked.connect(self._delete_session)
         buttons.addWidget(self.delete_btn)
         
-        refresh_btn = QPushButton("🔄")
+        refresh_btn = QPushButton("↻ Refresh")
+        refresh_btn.setToolTip("Refresh conversation list")
+        refresh_btn.setObjectName("refreshButton")  # Use refresh button style
         refresh_btn.clicked.connect(self._load_sessions)
         buttons.addWidget(refresh_btn)
         
@@ -111,8 +122,7 @@ class HistoryWindow(QDialog):
         self.preview_header = QLabel("Preview")
         right_layout.addWidget(self.preview_header)
         
-        self.preview_area = QTextEdit()
-        self.preview_area.setReadOnly(True)
+        self.preview_area = ChatWidget()
         self.preview_area.setMinimumWidth(400)
         right_layout.addWidget(self.preview_area)
         
@@ -120,6 +130,7 @@ class HistoryWindow(QDialog):
         close_layout = QHBoxLayout()
         close_layout.addStretch()
         close_btn = QPushButton("Close")
+        close_btn.setObjectName("historyButton")  # Use secondary button style
         close_btn.clicked.connect(self.accept)
         close_layout.addWidget(close_btn)
         right_layout.addLayout(close_layout)
@@ -139,16 +150,17 @@ class HistoryWindow(QDialog):
             item.setData(Qt.ItemDataRole.UserRole, session.session_id)
             
             widget = SessionListItem(session)
-            item.setSizeHint(widget.sizeHint())
+            # Ensure the widget is properly sized
+            widget.adjustSize()
+            # Set a fixed height for all items
+            item.setSizeHint(widget.size())
             
             self.session_list.addItem(item)
             self.session_list.setItemWidget(item, widget)
         
         if not sessions:
-            self.preview_area.setHtml(
-                "<p style='color: #8FBCBB; text-align: center; margin-top: 50px;'>"
-                "No saved conversations</p>"
-            )
+            self.preview_area.clear_chat()
+            # No need to show a message as the empty chat area is clear enough
 
     def _on_session_selected(self, item: QListWidgetItem):
         """Handle session selection."""
@@ -165,9 +177,7 @@ class HistoryWindow(QDialog):
         messages = self.session_service.get_messages(session_id)
         
         if not messages:
-            self.preview_area.setHtml(
-                "<p style='color: #BF616A;'>Error loading messages</p>"
-            )
+            self.preview_area.clear_chat()
             return
         
         # Update header
@@ -181,14 +191,16 @@ class HistoryWindow(QDialog):
                     )
                     break
         
-        # Render messages
-        html_messages = []
+        # Clear previous messages
+        self.preview_area.clear_chat()
+        
+        # Add messages to the chat widget
         for message in messages:
             role = message.get('role', '')
             content = message.get('content', '')
             
             if role == 'user':
-                html_messages.append(render_user_message(content))
+                self.preview_area.add_user_message(content)
             elif role == 'assistant':
                 # Handle complex content structure
                 if isinstance(content, list) and len(content) > 0:
@@ -198,15 +210,7 @@ class HistoryWindow(QDialog):
                         text_content = str(content)
                 else:
                     text_content = str(content)
-                html_messages.append(render_assistant_message(text_content))
-        
-        # Display
-        html_doc = (
-            "<html><body><div id='chat-root'>" +
-            "".join(html_messages) + 
-            "</div></body></html>"
-        )
-        self.preview_area.setHtml(html_doc)
+                self.preview_area.add_assistant_message(text_content)
 
     def _load_session(self):
         """Load selected session."""
@@ -235,10 +239,7 @@ class HistoryWindow(QDialog):
                 self.current_session_id = None
                 self.load_btn.setEnabled(False)
                 self.delete_btn.setEnabled(False)
-                self.preview_area.setHtml(
-                    "<p style='color: #8FBCBB; text-align: center; margin-top: 50px;'>"
-                    "Conversation deleted</p>"
-                )
+                self.preview_area.clear_chat()
                 self.preview_header.setText("Preview")
             else:
                 QMessageBox.warning(self, "Error", "Could not delete conversation.")
