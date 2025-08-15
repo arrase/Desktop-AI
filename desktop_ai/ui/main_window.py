@@ -12,32 +12,12 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtCore import QThread, pyqtSignal, QObject
-import asyncio
-from ..agent import ChatAgent  # type: ignore
-from .components import APP_STYLESHEET, render_user_message, render_assistant_message  # type: ignore
-from ..config.ollama_client import get_available_models_sync
-from ..config.config import get_selected_model, set_selected_model
 
-
-class AgentWorker(QObject):
-    """Worker that executes the agent's asynchronous request in a separate thread."""
-
-    response_received = pyqtSignal(str)
-
-    def __init__(self, agent: ChatAgent, prompt: str):
-        super().__init__()
-        self.agent = agent
-        self.prompt = prompt
-
-    def run(self):  # executes within the thread
-        loop = asyncio.new_event_loop()
-        try:
-            asyncio.set_event_loop(loop)
-            response = loop.run_until_complete(
-                self.agent.get_response(self.prompt))
-        finally:
-            loop.close()
-        self.response_received.emit(response)
+from ..agent import ChatAgent
+from ..services import OllamaService
+from ..core.config import get_config
+from ..utils import ThreadManager
+from .components import APP_STYLESHEET, render_user_message, render_assistant_message
 
 
 class MainWindow(QMainWindow):
@@ -45,14 +25,21 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.agent = ChatAgent()
+        self.config = get_config()
+        self.thread_manager = ThreadManager()
+        
         self.setWindowTitle("Chatbot")
         self.resize(800, 600)
         self.setStyleSheet(APP_STYLESHEET)
 
-        # Initialize the thread and worker attributes
-        self._thread = None
-        self._worker = None
+        self._setup_ui()
+        self.refresh_models()
 
+        # Store individual message HTML snippets
+        self._messages: list[str] = []
+
+    def _setup_ui(self):
+        """Setup the user interface."""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
@@ -77,9 +64,6 @@ class MainWindow(QMainWindow):
         model_row.addStretch()  # Push everything to the left
         layout.addLayout(model_row)
 
-        # Load available models
-        self.refresh_models()
-
         self.chat_history = QTextEdit()
         self.chat_history.setReadOnly(True)
         self.chat_history.setHtml(
@@ -98,52 +82,45 @@ class MainWindow(QMainWindow):
 
         layout.addLayout(input_row)
 
-        # Store individual message HTML snippets
-        self._messages: list[str] = []
-
-    # ---------------- Internal Helpers ----------------
-    def _thread_active(self) -> bool:
-        if self._thread is None:
-            return False
-        try:
-            return self._thread.isRunning()
-        except RuntimeError:
-            self._thread = None
-            return False
-
-    def _cleanup_thread(self):  # Qt slot for cleaning up thread references
-        self._thread = None
-        self._worker = None
-
     # ---------------- UI Actions ----------------
     def send_message(self):
         user_message = self.input_box.text().strip()
         if not user_message:
             return
+        
         self._append_chat_html(render_user_message(user_message))
         self.input_box.clear()
 
-        # Avoid overlap (could implement queue in the future)
-        if self._thread_active():
+        # Avoid overlap - check if already processing
+        if self.thread_manager.is_active():
             return
 
-        self._thread = QThread()
-        self._worker = AgentWorker(self.agent, user_message)
-        self._worker.moveToThread(self._thread)
-
-        self._thread.started.connect(self._worker.run)
-        self._worker.response_received.connect(self.handle_response)
-        self._worker.response_received.connect(self._thread.quit)
-        self._worker.response_received.connect(self._worker.deleteLater)
-        self._thread.finished.connect(self._cleanup_thread)
-        self._thread.finished.connect(self._thread.deleteLater)
-
-        self._thread.start()
-        self.send_button.setEnabled(False)
-        self.input_box.setEnabled(False)
+        # Start async task
+        try:
+            worker = self.thread_manager.start_async_task(
+                self.agent.get_response, user_message
+            )
+            worker.result_ready.connect(self.handle_response)
+            worker.error_occurred.connect(self.handle_error)
+            
+            self.send_button.setEnabled(False)
+            self.input_box.setEnabled(False)
+        except RuntimeError:
+            # Task already running, ignore
+            pass
 
     def handle_response(self, response: str):
+        """Handle successful response from agent."""
         self._append_chat_html(render_assistant_message(response))
+        self._enable_input()
+
+    def handle_error(self, error: str):
+        """Handle error from agent."""
+        self._append_chat_html(render_assistant_message(f"Error: {error}"))
+        self._enable_input()
+
+    def _enable_input(self):
+        """Re-enable input controls."""
         self.send_button.setEnabled(True)
         self.input_box.setEnabled(True)
         self.input_box.setFocus()
@@ -156,7 +133,7 @@ class MainWindow(QMainWindow):
             "".join(self._messages) + "</div></body></html>"
         )
         self.chat_history.setHtml(html_doc)
-    # Auto scroll to bottom
+        # Auto scroll to bottom
         sb = self.chat_history.verticalScrollBar()
         if sb is not None:
             sb.setValue(sb.maximum())
@@ -169,7 +146,7 @@ class MainWindow(QMainWindow):
     # ---------------- Model Management ----------------
     def refresh_models(self):
         """Refresh the list of available models from Ollama."""
-        models = get_available_models_sync()
+        models = OllamaService.get_available_models_sync()
         current_selection = self.model_selector.currentText()
 
         # Clear and repopulate the combo box
@@ -179,7 +156,7 @@ class MainWindow(QMainWindow):
             self.model_selector.addItems(models)
 
             # Try to restore previous selection
-            selected_model = get_selected_model()
+            selected_model = self.config.selected_model
             index = self.model_selector.findText(selected_model)
             if index >= 0:
                 self.model_selector.setCurrentIndex(index)
@@ -187,16 +164,16 @@ class MainWindow(QMainWindow):
                 # If saved model is not available, use first available model
                 if models:
                     self.model_selector.setCurrentIndex(0)
-                    set_selected_model(models[0])
+                    self.config.selected_model = models[0]
         else:
             # No models available from Ollama, add default option
-            default_model = get_selected_model()
+            default_model = self.config.selected_model
             self.model_selector.addItem(default_model)
             self.model_selector.setCurrentIndex(0)
 
     def on_model_changed(self, model_name: str):
         """Handle model selection change."""
         if model_name:
-            set_selected_model(model_name)
+            self.config.selected_model = model_name
             # Update the agent with the new model
             self.agent.update_model(model_name)
