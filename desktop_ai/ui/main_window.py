@@ -166,13 +166,13 @@ class MainWindow(QMainWindow):
         """Refresh the list of available models from Ollama."""
         models = get_available_models_sync()
         current_selection = self.model_selector.currentText()
-        
+
         # Clear and repopulate the combo box
         self.model_selector.clear()
-        
+
         if models:
             self.model_selector.addItems(models)
-            
+
             # Try to restore previous selection
             selected_model = get_selected_model()
             index = self.model_selector.findText(selected_model)

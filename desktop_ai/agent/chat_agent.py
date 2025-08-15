@@ -37,7 +37,7 @@ class ChatAgent:
         # Use the selected model from config if no specific config is provided
         if config is None:
             self.config.model = get_selected_model()
-        
+
         self.model = OpenAIChatCompletionsModel(
             model=self.config.model,
             openai_client=AsyncOpenAI(
