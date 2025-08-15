@@ -43,7 +43,7 @@ class MainWindow(QMainWindow):
         controls = QHBoxLayout()
         controls.setSpacing(12)
         
-        # Model selector group (integrado con refresh)
+        # Model selector group (integrated with refresh)
         model_group = QHBoxLayout()
         model_group.setSpacing(0)  # Sin espacio entre elementos
         model_group.setContentsMargins(0, 0, 0, 0)
@@ -67,7 +67,7 @@ class MainWindow(QMainWindow):
         refresh_btn = QPushButton("↻")
         refresh_btn.setToolTip("Refresh available models")
         refresh_btn.setObjectName("refreshButtonIntegrated")
-        refresh_btn.setFixedWidth(36)  # Botón más pequeño
+        refresh_btn.setFixedWidth(36)  # Smaller button
         refresh_btn.clicked.connect(self._refresh_models)
         model_group.addWidget(refresh_btn)
         
