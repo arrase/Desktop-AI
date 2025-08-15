@@ -48,8 +48,6 @@ class TaskAgentApp(QApplication):
         # Pass the agent from the main window to the settings window
         settings_win = SettingsWindow(agent=self.main_window.agent, parent=self.main_window)
         settings_win.exec()
-        self.main_window.showNormal()
-        self.main_window.activateWindow()
 
     def on_tray_icon_activated(self, reason):
         # Toggle main window visibility on left click
