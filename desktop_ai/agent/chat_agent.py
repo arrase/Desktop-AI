@@ -1,107 +1,60 @@
-"""Chat agent abstraction over the `agents` library.
-
-This keeps model + agent construction encapsulated and exposes a single
-`get_response` coroutine. Future improvements (streaming, tool use,
-error classification, retries, cancellation) can be centralized here.
-"""
-from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Optional
+"""Simplified chat agent."""
 import asyncio
 import uuid
+from typing import Optional
 
 from agents import Agent, Runner, OpenAIChatCompletionsModel, SQLiteSession
 from openai import AsyncOpenAI
-from ..core.config import get_config
-from ..core.constants import (
-    DEFAULT_MODEL,
-    OLLAMA_BASE_URL,
-    API_KEY,
-    SYSTEM_INSTRUCTIONS,
-    CONVERSATION_DB_PATH,
-)
 
-
-@dataclass
-class ChatAgentConfig:
-    model: str = DEFAULT_MODEL
-    base_url: str = OLLAMA_BASE_URL
-    api_key: str = API_KEY
-    system_instructions: str = SYSTEM_INSTRUCTIONS
+from ..core import config, OLLAMA_BASE_URL, API_KEY, DATABASE_PATH
 
 
 class ChatAgent:
-    """High level chat interface.
+    """Simple chat agent wrapper."""
 
-    A light wrapper to isolate external library surface from the UI layer.
-    """
-
-    def __init__(self, config: Optional[ChatAgentConfig] = None):
-        self.config = config or ChatAgentConfig()
+    def __init__(self):
         self.session: Optional[SQLiteSession] = None
-        # Use the selected model and system_prompt from config if no specific config is provided
-        if config is None:
-            app_config = get_config()
-            self.config.model = app_config.selected_model
-            self.config.system_instructions = app_config.system_prompt
-
         self._create_agent()
-        self.reset()  # Initial session setup
+        self.reset()
 
     def _create_agent(self):
         """Create the agent with current configuration."""
-        self.model = OpenAIChatCompletionsModel(
-            model=self.config.model,
+        model = OpenAIChatCompletionsModel(
+            model=config.model,
             openai_client=AsyncOpenAI(
-                base_url=self.config.base_url, api_key=self.config.api_key
+                base_url=OLLAMA_BASE_URL, 
+                api_key=API_KEY
             ),
         )
         self.agent = Agent(
             name="Assistant",
-            instructions=self.config.system_instructions,
-            model=self.model,
+            instructions=config.system_prompt,
+            model=model,
         )
 
     def update_model(self, model_name: str):
-        """Updates the model used by the agent."""
-        self.config.model = model_name
+        """Update the model."""
+        config.model = model_name
         self._create_agent()
-        self.reset()  # Reset conversation history for new model
+        self.reset()
 
     def update_system_prompt(self, system_prompt: str):
-        """Updates the system prompt used by the agent."""
-        self.config.system_instructions = system_prompt
+        """Update the system prompt."""
+        config.system_prompt = system_prompt
         self._create_agent()
 
     def reset(self):
-        """Resets the agent's conversational state."""
-        # A new session is created with a unique ID for each conversation
-        self.session = SQLiteSession(
-            str(uuid.uuid4()), CONVERSATION_DB_PATH
-        )
+        """Reset conversation."""
+        self.session = SQLiteSession(str(uuid.uuid4()), str(DATABASE_PATH))
 
     def load_session(self, session_id: str):
-        """Load an existing session by ID."""
-        self.session = SQLiteSession(session_id, CONVERSATION_DB_PATH)
+        """Load existing session."""
+        self.session = SQLiteSession(session_id, str(DATABASE_PATH))
 
     async def get_response(self, prompt: str) -> str:
-        """Return assistant reply for prompt.
-
-        Captures exceptions and returns a user friendly message. In the
-        future we could raise instead and let UI decide.
-        """
+        """Get response from the agent."""
         try:
             result = await Runner.run(self.agent, prompt, session=self.session)
             return result.final_output
-        except Exception as e:  # broad: upstream lib may raise varied errors
-            return f"Error: {e}"  # keep short; UI already labels assistant
-
-
-async def _demo():  # pragma: no cover - manual test helper
-    chat_agent = ChatAgent()
-    print(await chat_agent.get_response("Ping?"))
-
-
-if __name__ == "__main__":  # pragma: no cover
-    asyncio.run(_demo())
+        except Exception as e:
+            return f"Error: {e}"

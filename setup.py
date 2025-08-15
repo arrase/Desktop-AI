@@ -15,4 +15,7 @@ setup(
             "desktop-ai = desktop_ai.main:main",
         ]
     },
+    description="A simple desktop AI chat application with system tray integration",
+    author="Juan Ezquerro LLanes",
+    python_requires=">=3.8",
 )

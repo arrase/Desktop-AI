@@ -1,10 +1,14 @@
 import sys
-from .ui import TaskAgentApp
+from .ui import DesktopAI
 
 
 def main():
-    app = TaskAgentApp(sys.argv)
-    app.run()
+    """Main entry point with error handling."""
+    try:
+        app = DesktopAI(sys.argv)
+        app.run()
+    except Exception as e:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

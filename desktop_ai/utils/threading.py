@@ -1,12 +1,11 @@
-"""Threading utilities for async operations in Qt."""
-
+"""Simplified threading utilities."""
 import asyncio
-from typing import Callable, Any
+from typing import Callable
 from PyQt6.QtCore import QThread, QObject, pyqtSignal
 
 
 class AsyncWorker(QObject):
-    """Generic worker for executing async functions in a separate thread."""
+    """Worker for async operations."""
     
     result_ready = pyqtSignal(object)
     error_occurred = pyqtSignal(str)
@@ -18,7 +17,7 @@ class AsyncWorker(QObject):
         self.kwargs = kwargs
     
     def run(self):
-        """Execute the async function and emit the result."""
+        """Execute the async function."""
         loop = asyncio.new_event_loop()
         try:
             asyncio.set_event_loop(loop)
@@ -33,28 +32,20 @@ class AsyncWorker(QObject):
 
 
 class ThreadManager:
-    """Helper class to manage QThread lifecycle."""
+    """Simple thread manager."""
     
     def __init__(self):
         self._thread = None
         self._worker = None
     
     def is_active(self) -> bool:
-        """Check if a thread is currently running."""
-        if self._thread is None:
-            return False
-        try:
-            return self._thread.isRunning()
-        except RuntimeError:
-            # This can occur if the underlying QThread C++ object has already been deleted,
-            # for example, if the thread has finished and been cleaned up.
-            self._thread = None
-            return False
+        """Check if thread is running."""
+        return self._thread is not None and self._thread.isRunning()
     
-    def start_async_task(self, async_func: Callable, *args, **kwargs) -> AsyncWorker:
-        """Start an async task in a separate thread."""
+    def start_task(self, async_func: Callable, *args, **kwargs) -> AsyncWorker:
+        """Start an async task."""
         if self.is_active():
-            raise RuntimeError("A task is already running")
+            raise RuntimeError("Task already running")
         
         self._thread = QThread()
         self._worker = AsyncWorker(async_func, *args, **kwargs)
@@ -73,6 +64,6 @@ class ThreadManager:
         return self._worker
     
     def _cleanup(self):
-        """Clean up thread references."""
+        """Clean up references."""
         self._thread = None
         self._worker = None

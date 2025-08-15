@@ -1,4 +1,4 @@
-"""Utility modules."""
-from .threading import AsyncWorker, ThreadManager
+"""Utilities module."""
+from .threading import ThreadManager, AsyncWorker
 
-__all__ = ["AsyncWorker", "ThreadManager"]
+__all__ = ["ThreadManager", "AsyncWorker"]
