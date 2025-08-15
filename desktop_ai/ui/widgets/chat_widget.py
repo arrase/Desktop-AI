@@ -73,24 +73,32 @@ class MessageBubble(QFrame):
             bubble_frame = QFrame()
             bubble_frame.setStyleSheet("""
                 QFrame {
-                    background-color: #89b4fa;
-                    color: #11111b;
+                    background-color: #45475a;
+                    color: #cdd6f4;
                     border-radius: 15px;
+                    border: 1px solid #6c7086;
                     padding: 12px 16px;
                 }
             """)
             
             # Create the message label
-            message_label = QLabel(text)
+            message_label = QLabel()
             message_label.setWordWrap(True)
             message_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-            message_label.setStyleSheet("background: transparent; color: #11111b; font-weight: 600; font-size: 14px;")
+            message_label.setStyleSheet("background: transparent; color: #cdd6f4; font-weight: 500; font-size: 14px;")
             message_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+            
+            # Enable HTML rendering for markdown
+            message_label.setTextFormat(Qt.TextFormat.RichText)
             
             # Set font
             font = QFont("Segoe UI", 10)
-            font.setWeight(QFont.Weight.Medium)
+            font.setWeight(QFont.Weight.Normal)
             message_label.setFont(font)
+            
+            # Process markdown for user messages using the styler
+            processed_text = MarkdownStyler.process_markdown(text)
+            message_label.setText(processed_text)
             
             # Simple layout for the bubble
             bubble_layout = QVBoxLayout(bubble_frame)
