@@ -35,7 +35,7 @@ class OllamaService:
         try:
             response = ollama.list()
             return OllamaService._extract_model_names(response)
-        except (Exception, requests.RequestException):
+        except Exception:
             # If Ollama is not available or there's any network/API error, return empty list
             return []
     
