@@ -127,7 +127,7 @@ QComboBox {
     font-family: 'Segoe UI', 'SF Pro Display', system-ui, sans-serif;
 }
 
-/* Model selector integrado con refresh button */
+/* Model selector integrated with refresh button */
 QWidget#modelContainer {
     background-color: transparent;
     border: none;
