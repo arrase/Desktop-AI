@@ -62,9 +62,14 @@ class MainWindow(QMainWindow):
 
         refresh_button = QPushButton("🔄")
         refresh_button.setToolTip("Refresh model list")
-        refresh_button.setMaximumWidth(40)
         refresh_button.clicked.connect(self.refresh_models)
         model_row.addWidget(refresh_button)
+
+        reset_button = QPushButton("🗑️")
+        reset_button.setToolTip("Reset conversation")
+        reset_button.setAccessibleName("Reset conversation")
+        reset_button.clicked.connect(self._on_reset_clicked)
+        model_row.addWidget(reset_button)
 
         model_row.addStretch()  # Push everything to the left
         layout.addLayout(model_row)
@@ -143,6 +148,17 @@ class MainWindow(QMainWindow):
         if sb is not None:
             sb.setValue(sb.maximum())
 
+    def _clear_chat_history(self):
+        """Clears the chat history display and state."""
+        self._messages.clear()
+        self.chat_history.setHtml(
+            "<html><body><div id='chat-root'></div></body></html>")
+
+    def _on_reset_clicked(self):
+        """Handle reset button click."""
+        self.agent.reset()
+        self._clear_chat_history()
+
     # ---------------- Events ----------------
     def closeEvent(self, event: QCloseEvent):  # type: ignore[override]
         self.hide()
@@ -189,3 +205,4 @@ class MainWindow(QMainWindow):
             self.config.selected_model = model_name
             # Update the agent with the new model
             self.agent.update_model(model_name)
+            self._clear_chat_history()
