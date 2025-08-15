@@ -51,7 +51,7 @@ class ChatAgent:
         )
 
     def update_model(self, model_name: str):
-        """Actualiza el modelo usado por el agente sin recrear la instancia de Agent."""
+        """Updates the model used by the agent without recreating the Agent instance."""
         self.config.model = model_name
         self.model = OpenAIChatCompletionsModel(
             model=self.config.model,
