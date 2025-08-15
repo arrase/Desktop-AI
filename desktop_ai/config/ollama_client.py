@@ -1,7 +1,9 @@
 """Ollama integration for listing available models."""
+
 import asyncio
 from typing import List
 import ollama
+import requests
 
 
 async def get_available_models() -> List[str]:
@@ -51,7 +53,6 @@ def get_available_models_sync() -> List[str]:
 
         return sorted(models)
 
-    except Exception:
-    except requests.RequestException:
+    except (Exception, requests.RequestException):
         # If Ollama is not available or there's any network/API error, return empty list
         return []

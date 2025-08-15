@@ -48,6 +48,9 @@ class MainWindow(QMainWindow):
         self.resize(800, 600)
         self.setStyleSheet(APP_STYLESHEET)
 
+        # Inicializa el atributo de hilo
+        self._thread = None
+
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 

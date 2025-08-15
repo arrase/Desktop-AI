@@ -51,7 +51,7 @@ class ChatAgent:
         )
 
     def update_model(self, model_name: str):
-        """Update the model used by the agent."""
+        """Actualiza el modelo usado por el agente sin recrear la instancia de Agent."""
         self.config.model = model_name
         self.model = OpenAIChatCompletionsModel(
             model=self.config.model,
@@ -59,11 +59,16 @@ class ChatAgent:
                 base_url=self.config.base_url, api_key=self.config.api_key
             ),
         )
-        self.agent = Agent(
-            name="Assistant",
-            instructions=self.config.system_instructions,
-            model=self.model,
-        )
+        # Actualiza solo la referencia al modelo en el agente existente
+        if hasattr(self, 'agent') and self.agent is not None:
+            self.agent.model = self.model
+        else:
+            # Si no existe el agente, créalo (caso inicial)
+            self.agent = Agent(
+                name="Assistant",
+                instructions=self.config.system_instructions,
+                model=self.model,
+            )
 
     async def get_response(self, prompt: str) -> str:
         """Return assistant reply for prompt.
