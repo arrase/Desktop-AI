@@ -207,7 +207,7 @@ class MainWindow(QMainWindow):
                     self._append_chat_html(render_assistant_message(text_content))
             
         except Exception as e:
-            self._append_chat_html(render_assistant_message(f"Error cargando la sesión: {e}"))
+            self._append_chat_html(render_assistant_message(f"Error loading session: {e}"))
 
     # ---------------- Events ----------------
     def closeEvent(self, event: QCloseEvent):  # type: ignore[override]
