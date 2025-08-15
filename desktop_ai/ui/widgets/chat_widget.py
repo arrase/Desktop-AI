@@ -27,7 +27,8 @@ class MessageBubble(QFrame):
         
         if self.is_user:
             # User message: add spacer first, then bubble (align right)
-            container_layout.addItem(QSpacerItem(80, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+            # Spacer takes 30% of space, bubble takes the rest
+            container_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
             
             # Create the bubble frame
             bubble_frame = QFrame()
@@ -37,13 +38,8 @@ class MessageBubble(QFrame):
                     color: #11111b;
                     border-radius: 15px;
                     padding: 12px 16px;
-                    max-width: 400px;
                 }
             """)
-            
-            # Bubble layout
-            bubble_layout = QHBoxLayout(bubble_frame)
-            bubble_layout.setContentsMargins(0, 0, 0, 0)
             
             # Create the message label
             message_label = QLabel(text)
@@ -57,8 +53,12 @@ class MessageBubble(QFrame):
             font.setWeight(QFont.Weight.Medium)
             message_label.setFont(font)
             
+            # Simple layout for the bubble
+            bubble_layout = QVBoxLayout(bubble_frame)
+            bubble_layout.setContentsMargins(0, 0, 0, 0)
             bubble_layout.addWidget(message_label)
-            container_layout.addWidget(bubble_frame)
+            
+            container_layout.addWidget(bubble_frame, 2)  # Takes 2/3 of remaining space
             
         else:
             # Assistant message: bubble first, then spacer (align left)
@@ -72,13 +72,8 @@ class MessageBubble(QFrame):
                     border-radius: 15px;
                     border: 1px solid #45475a;
                     padding: 12px 16px;
-                    max-width: 400px;
                 }
             """)
-            
-            # Bubble layout
-            bubble_layout = QHBoxLayout(bubble_frame)
-            bubble_layout.setContentsMargins(0, 0, 0, 0)
             
             # Create the message label
             message_label = QLabel()
@@ -87,26 +82,43 @@ class MessageBubble(QFrame):
             message_label.setStyleSheet("background: transparent; color: #cdd6f4; font-size: 14px;")
             message_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
             
+            # Enable HTML rendering for markdown
+            message_label.setTextFormat(Qt.TextFormat.RichText)
+            
             # Set font
             font = QFont("Segoe UI", 10)
             message_label.setFont(font)
             
             # Process markdown for assistant messages
             if any(marker in text for marker in ['```', '**', '*', '#', '`']):
-                html_content = markdown2.markdown(text, extras=["fenced-code-blocks"])
-                # Simple styling for code blocks
+                html_content = markdown2.markdown(text, extras=["fenced-code-blocks", "tables"])
+                # Enhanced styling for code blocks
                 html_content = html_content.replace(
-                    '<pre>', '<pre style="background-color: #11111b; padding: 8px; border-radius: 6px; margin: 4px 0; color: #cdd6f4; font-family: monospace;">'
+                    '<pre>', '<pre style="background-color: #11111b; padding: 12px; border-radius: 8px; margin: 8px 0; color: #cdd6f4; font-family: \'JetBrains Mono\', Consolas, monospace; font-size: 13px; line-height: 1.4; border: 1px solid #45475a;">'
                 ).replace(
-                    '<code>', '<code style="background-color: #45475a; padding: 2px 4px; border-radius: 3px; color: #fab387; font-family: monospace;">'
+                    '<code>', '<code style="background-color: #45475a; padding: 3px 6px; border-radius: 4px; color: #fab387; font-family: \'JetBrains Mono\', Consolas, monospace; font-size: 13px;">'
+                ).replace(
+                    '<h1>', '<h1 style="color: #cdd6f4; font-size: 18px; font-weight: bold; margin: 12px 0 8px 0;">'
+                ).replace(
+                    '<h2>', '<h2 style="color: #cdd6f4; font-size: 16px; font-weight: bold; margin: 10px 0 6px 0;">'
+                ).replace(
+                    '<h3>', '<h3 style="color: #cdd6f4; font-size: 14px; font-weight: bold; margin: 8px 0 4px 0;">'
+                ).replace(
+                    '<strong>', '<strong style="color: #fab387; font-weight: bold;">'
+                ).replace(
+                    '<em>', '<em style="color: #a6e3a1; font-style: italic;">'
                 )
                 message_label.setText(html_content)
             else:
                 message_label.setText(text)
             
+            # Simple layout for the bubble
+            bubble_layout = QVBoxLayout(bubble_frame)
+            bubble_layout.setContentsMargins(0, 0, 0, 0)
             bubble_layout.addWidget(message_label)
-            container_layout.addWidget(bubble_frame)
-            container_layout.addItem(QSpacerItem(80, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+            
+            container_layout.addWidget(bubble_frame, 2)  # Takes 2/3 of space
+            container_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
 
 class ChatWidget(QScrollArea):
