@@ -52,5 +52,6 @@ def get_available_models_sync() -> List[str]:
         return sorted(models)
 
     except Exception:
-        # If Ollama is not available or there's any error, return empty list
+    except requests.RequestException:
+        # If Ollama is not available or there's any network/API error, return empty list
         return []
