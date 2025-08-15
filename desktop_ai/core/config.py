@@ -1,5 +1,6 @@
 """Configuration management for Desktop AI application."""
 import json
+import threading
 from pathlib import Path
 from typing import Dict, Any
 from .constants import DEFAULT_MODEL, CONFIG_DIR_NAME, CONFIG_FILE_NAME
@@ -66,12 +67,19 @@ class Config:
         self.save()
 
 
-# Global config instance
+# Global config instance with thread-safe initialization
 _config_instance = None
+_config_lock = threading.Lock()
 
 def get_config() -> Config:
-    """Get the global configuration instance."""
+    """Get the global configuration instance (thread-safe singleton)."""
     global _config_instance
+    
+    # Double-checked locking pattern for thread-safe singleton
     if _config_instance is None:
-        _config_instance = Config()
+        with _config_lock:
+            # Check again inside the lock to prevent race condition
+            if _config_instance is None:
+                _config_instance = Config()
+    
     return _config_instance
