@@ -1,5 +1,5 @@
 """Modern chat display widget using native Qt widgets."""
-from typing import List
+import re
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, 
     QFrame, QSizePolicy, QSpacerItem
@@ -7,6 +7,45 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 import markdown2
+
+
+class MarkdownStyler:
+    """Handles markdown styling and HTML formatting."""
+    
+    # CSS-like styles for different HTML elements
+    STYLES = {
+        'pre': 'background-color: #11111b; padding: 12px; border-radius: 8px; margin: 8px 0; color: #cdd6f4; font-family: \'JetBrains Mono\', Consolas, monospace; font-size: 13px; line-height: 1.4; border: 1px solid #45475a;',
+        'code': 'background-color: #45475a; padding: 3px 6px; border-radius: 4px; color: #fab387; font-family: \'JetBrains Mono\', Consolas, monospace; font-size: 13px;',
+        'h1': 'color: #cdd6f4; font-size: 18px; font-weight: bold; margin: 12px 0 8px 0;',
+        'h2': 'color: #cdd6f4; font-size: 16px; font-weight: bold; margin: 10px 0 6px 0;',
+        'h3': 'color: #cdd6f4; font-size: 14px; font-weight: bold; margin: 8px 0 4px 0;',
+        'strong': 'color: #fab387; font-weight: bold;',
+        'em': 'color: #a6e3a1; font-style: italic;'
+    }
+    
+    # Regex pattern to detect markdown in a single pass
+    MARKDOWN_PATTERN = re.compile(r'```|`|\*\*|\*|#{1,6}\s|^\s*[-*+]\s|^\s*\d+\.\s', re.MULTILINE)
+    
+    @classmethod
+    def has_markdown(cls, text: str) -> bool:
+        """Efficiently detect if text contains markdown formatting."""
+        return bool(cls.MARKDOWN_PATTERN.search(text))
+    
+    @classmethod
+    def apply_styles(cls, html_content: str) -> str:
+        """Apply consistent styling to HTML elements."""
+        for tag, style in cls.STYLES.items():
+            html_content = html_content.replace(f'<{tag}>', f'<{tag} style="{style}">')
+        return html_content
+    
+    @classmethod
+    def process_markdown(cls, text: str) -> str:
+        """Process markdown text and apply styling."""
+        if not cls.has_markdown(text):
+            return text
+        
+        html_content = markdown2.markdown(text, extras=["fenced-code-blocks", "tables"])
+        return cls.apply_styles(html_content)
 
 
 class MessageBubble(QFrame):
@@ -89,28 +128,9 @@ class MessageBubble(QFrame):
             font = QFont("Segoe UI", 10)
             message_label.setFont(font)
             
-            # Process markdown for assistant messages
-            if any(marker in text for marker in ['```', '**', '*', '#', '`']):
-                html_content = markdown2.markdown(text, extras=["fenced-code-blocks", "tables"])
-                # Enhanced styling for code blocks
-                html_content = html_content.replace(
-                    '<pre>', '<pre style="background-color: #11111b; padding: 12px; border-radius: 8px; margin: 8px 0; color: #cdd6f4; font-family: \'JetBrains Mono\', Consolas, monospace; font-size: 13px; line-height: 1.4; border: 1px solid #45475a;">'
-                ).replace(
-                    '<code>', '<code style="background-color: #45475a; padding: 3px 6px; border-radius: 4px; color: #fab387; font-family: \'JetBrains Mono\', Consolas, monospace; font-size: 13px;">'
-                ).replace(
-                    '<h1>', '<h1 style="color: #cdd6f4; font-size: 18px; font-weight: bold; margin: 12px 0 8px 0;">'
-                ).replace(
-                    '<h2>', '<h2 style="color: #cdd6f4; font-size: 16px; font-weight: bold; margin: 10px 0 6px 0;">'
-                ).replace(
-                    '<h3>', '<h3 style="color: #cdd6f4; font-size: 14px; font-weight: bold; margin: 8px 0 4px 0;">'
-                ).replace(
-                    '<strong>', '<strong style="color: #fab387; font-weight: bold;">'
-                ).replace(
-                    '<em>', '<em style="color: #a6e3a1; font-style: italic;">'
-                )
-                message_label.setText(html_content)
-            else:
-                message_label.setText(text)
+            # Process markdown for assistant messages using the styler
+            processed_text = MarkdownStyler.process_markdown(text)
+            message_label.setText(processed_text)
             
             # Simple layout for the bubble
             bubble_layout = QVBoxLayout(bubble_frame)
@@ -187,7 +207,9 @@ class ChatWidget(QScrollArea):
         while self.messages_layout.count() > 1:
             child = self.messages_layout.takeAt(0)
             if child and child.widget():
-                child.widget().deleteLater()
+                widget = child.widget()
+                if widget:
+                    widget.deleteLater()
     
     def scroll_to_bottom(self):
         """Scroll to the bottom of the chat."""
