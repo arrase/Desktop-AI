@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QStyle
 from PyQt6.QtGui import QAction
 from .main_window import MainWindow
+from .settings_window import SettingsWindow
 import sys
 
 
@@ -26,6 +27,12 @@ class TaskAgentApp(QApplication):
         show_action.triggered.connect(self.show_main_window)
         tray_menu.addAction(show_action)
 
+        settings_action = QAction("Settings", self)
+        settings_action.triggered.connect(self.show_settings_window)
+        tray_menu.addAction(settings_action)
+
+        tray_menu.addSeparator()
+
         exit_action = QAction("Exit", self)
         exit_action.triggered.connect(self.on_exit)
         tray_menu.addAction(exit_action)
@@ -34,6 +41,13 @@ class TaskAgentApp(QApplication):
         self.tray_icon.show()
 
     def show_main_window(self):
+        self.main_window.showNormal()
+        self.main_window.activateWindow()
+
+    def show_settings_window(self):
+        # Pass the agent from the main window to the settings window
+        settings_win = SettingsWindow(agent=self.main_window.agent, parent=self.main_window)
+        settings_win.exec()
         self.main_window.showNormal()
         self.main_window.activateWindow()
 

@@ -32,9 +32,11 @@ class ChatAgent:
 
     def __init__(self, config: Optional[ChatAgentConfig] = None):
         self.config = config or ChatAgentConfig()
-        # Use the selected model from config if no specific config is provided
+        # Use the selected model and system_prompt from config if no specific config is provided
         if config is None:
-            self.config.model = get_config().selected_model
+            app_config = get_config()
+            self.config.model = app_config.selected_model
+            self.config.system_instructions = app_config.system_prompt
 
         self._create_agent()
 
@@ -55,6 +57,11 @@ class ChatAgent:
     def update_model(self, model_name: str):
         """Updates the model used by the agent."""
         self.config.model = model_name
+        self._create_agent()
+
+    def update_system_prompt(self, system_prompt: str):
+        """Updates the system prompt used by the agent."""
+        self.config.system_instructions = system_prompt
         self._create_agent()
 
     async def get_response(self, prompt: str) -> str:
