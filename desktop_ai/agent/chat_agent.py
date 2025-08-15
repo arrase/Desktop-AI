@@ -64,6 +64,10 @@ class ChatAgent:
         self.config.system_instructions = system_prompt
         self._create_agent()
 
+    def reset(self):
+        """Resets the agent's conversational state."""
+        self._create_agent()
+
     async def get_response(self, prompt: str) -> str:
         """Return assistant reply for prompt.
 
