@@ -39,6 +39,7 @@ class ChatAgent:
 
     def __init__(self, config: Optional[ChatAgentConfig] = None):
         self.config = config or ChatAgentConfig()
+        self.session: Optional[SQLiteSession] = None
         # Use the selected model and system_prompt from config if no specific config is provided
         if config is None:
             app_config = get_config()
