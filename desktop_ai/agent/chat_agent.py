@@ -3,7 +3,7 @@ import asyncio
 import uuid
 from typing import Optional
 
-from agents import Agent, Runner, OpenAIChatCompletionsModel, SQLiteSession
+from agents import Agent, Runner, OpenAIResponsesModel, SQLiteSession
 from openai import AsyncOpenAI
 
 from ..core import config, OLLAMA_BASE_URL, API_KEY, DATABASE_PATH
@@ -19,7 +19,7 @@ class ChatAgent:
 
     def _create_agent(self):
         """Create the agent with current configuration."""
-        model = OpenAIChatCompletionsModel(
+        model = OpenAIResponsesModel(
             model=config.model,
             openai_client=AsyncOpenAI(
                 base_url=OLLAMA_BASE_URL, 
