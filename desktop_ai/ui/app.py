@@ -28,14 +28,37 @@ class DesktopAI:
         """Setup system tray icon and menu."""
         self.tray_icon = QSystemTrayIcon()
 
-        # Set icon
-        style = self.app.style()
-        if style:
-            icon = style.standardIcon(
-                QStyle.StandardPixmap.SP_MessageBoxQuestion)
-            self.tray_icon.setIcon(icon)
-
-        self.tray_icon.setToolTip("Desktop AI")
+        # Create a better custom icon
+        from PyQt6.QtGui import QPixmap, QIcon, QPainter, QColor, QFont
+        from PyQt6.QtCore import Qt
+        
+        # Create a pixmap for the icon
+        pixmap = QPixmap(64, 64)
+        pixmap.fill(Qt.GlobalColor.transparent)
+        
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Draw background circle with gradient
+        from PyQt6.QtGui import QRadialGradient
+        gradient = QRadialGradient(32, 32, 32)
+        gradient.setColorAt(0, QColor(137, 180, 250))  # #89b4fa
+        gradient.setColorAt(1, QColor(116, 199, 236))  # #74c7ec
+        painter.setBrush(gradient)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(4, 4, 56, 56)
+        
+        # Draw "AI" text
+        painter.setPen(QColor(30, 30, 46))  # #1e1e2e
+        font = QFont("Segoe UI", 20, QFont.Weight.Bold)
+        painter.setFont(font)
+        painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, "AI")
+        
+        painter.end()
+        
+        icon = QIcon(pixmap)
+        self.tray_icon.setIcon(icon)
+        self.tray_icon.setToolTip("Desktop AI - Your AI Assistant")
 
         # Connect activation signal with error handling
         self.tray_icon.activated.connect(self._on_tray_activated)

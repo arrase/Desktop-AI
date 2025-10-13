@@ -28,8 +28,40 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Desktop AI")
         self.resize(800, 600)
         self.setStyleSheet(STYLESHEET)
+        self._set_window_icon()
         self._setup_ui()
         self._refresh_models()
+    
+    def _set_window_icon(self):
+        """Set a custom window icon."""
+        from PyQt6.QtGui import QPixmap, QIcon, QPainter, QColor, QFont, QRadialGradient
+        from PyQt6.QtCore import Qt
+        
+        # Create a pixmap for the icon
+        pixmap = QPixmap(64, 64)
+        pixmap.fill(Qt.GlobalColor.transparent)
+        
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Draw background circle with gradient
+        gradient = QRadialGradient(32, 32, 32)
+        gradient.setColorAt(0, QColor(137, 180, 250))  # #89b4fa
+        gradient.setColorAt(1, QColor(116, 199, 236))  # #74c7ec
+        painter.setBrush(gradient)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(4, 4, 56, 56)
+        
+        # Draw "AI" text
+        painter.setPen(QColor(30, 30, 46))  # #1e1e2e
+        font = QFont("Segoe UI", 20, QFont.Weight.Bold)
+        painter.setFont(font)
+        painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, "AI")
+        
+        painter.end()
+        
+        icon = QIcon(pixmap)
+        self.setWindowIcon(icon)
 
     def _setup_ui(self):
         """Setup the user interface."""
